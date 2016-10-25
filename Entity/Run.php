@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="Fgms\SpecialOffersBundle\Repository\RunRepository")
- * @ORM\Table(name="run")
+ * @ORM\Table(name="run",indexes={@ORM\Index(name="when_idx",columns={"when"})})
  */
 class Run
 {
