@@ -1,0 +1,3 @@
+fgms_special_offers_homepage:
+    path:     /
+    defaults: { _controller: FgmsSpecialOffersBundle:Default:index }
