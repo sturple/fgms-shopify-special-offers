@@ -18,42 +18,42 @@ class SpecialOffer
     private $id;
 
     /**
-     * @ORM\Column(type="text",nullable=false)
+     * @ORM\Column(type="text")
      */
     private $saleTitle;
 
     /**
-     * @ORM\Column(type="datetime",nullable=false)
+     * @ORM\Column(type="datetime")
      */
     private $start;
 
     /**
-     * @ORM\Column(type="datetime",nullable=false)
+     * @ORM\Column(type="datetime")
      */
     private $end;
 
     /**
-     * @ORM\Column(type="text",nullable=false)
+     * @ORM\Column(type="text")
      */
     private $slideshow;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text",nullable=true)
      */
     private $tag;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text",nullable=true)
      */
     private $saleSummary;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer",nullable=true)
      */
     private $discountCents;
     
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float",nullable=true)
      */
     private $discountPercent;
 
