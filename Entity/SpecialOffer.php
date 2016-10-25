@@ -100,7 +100,7 @@ class SpecialOffer
      */
     public function setStart($start)
     {
-        $this->start = $start;
+        $this->start = \Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($start);
 
         return $this;
     }
@@ -112,7 +112,7 @@ class SpecialOffer
      */
     public function getStart()
     {
-        return $this->start;
+        return $this->start = \Fgms\SpecialOffersBundle\Utility\DateTime::fromDoctrine($this->start);
     }
 
     /**
@@ -124,7 +124,7 @@ class SpecialOffer
      */
     public function setEnd($end)
     {
-        $this->end = $end;
+        $this->end = \Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($end);
 
         return $this;
     }
@@ -136,7 +136,7 @@ class SpecialOffer
      */
     public function getEnd()
     {
-        return $this->end;
+        return $this->end = \Fgms\SpecialOffersBundle\Utility\DateTime::fromDoctrine($this->end);
     }
 
     /**

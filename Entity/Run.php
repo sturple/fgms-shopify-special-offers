@@ -51,7 +51,7 @@ class Run
      */
     public function setWhen($when)
     {
-        $this->when = $when;
+        $this->when = \Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($when);
 
         return $this;
     }
@@ -63,7 +63,7 @@ class Run
      */
     public function getWhen()
     {
-        return $this->when;
+        return $this->when = \Fgms\SpecialOffersBundle\Utility\DateTime::fromDoctrine($this->when);
     }
 
     /**
