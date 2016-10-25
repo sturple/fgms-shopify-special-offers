@@ -18,7 +18,7 @@ class Run
     private $id;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime",name="`when`")
      */
     private $when;
 
