@@ -8,11 +8,11 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
     {
         if (!is_null($from)) {
             $qb->andWhere($qb->expr()->gt($table . '.' . $property,':from'))
-                ->setParameter('from',$from);
+                ->setParameter('from',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($from));
         }
         if (!is_null($to)) {
             $qb->andWhere($qb->expr()->lte($table . '.' . $property,':to'))
-                ->setParameter('to',$to);
+                ->setParameter('to',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($to));
         }
     }
 
