@@ -1,0 +1,28 @@
+{
+    "name": "sturple/fgms-shopify-special-offers",
+    "description": "Shopify Special Offers Bundle (Embed)",
+    "type": "symfony-bundle",
+    "keywords": ["shopify", "oauth","embed", "symfony","special offers"],
+    "homepage": "https://github.com/sturple/fgms-shopify-special-offers",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shawn Turple",
+            "email": "shawn@turple.ca"
+        },
+        {
+            "name": "Robert Leahy",
+            "email": "rleahy@rleahy.ca"          
+        }
+    ],
+    "require": {
+      
+    },
+    "minimum-stability": "dev",
+    "target-dir": "Fgms/SpecialOffersBundle",
+    "autoload" : {
+        "psr-0" : {"Fgms\\SpecialOffersBundle" : ""}
+    }
+
+
+}
