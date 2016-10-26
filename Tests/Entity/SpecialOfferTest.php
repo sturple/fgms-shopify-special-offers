@@ -51,7 +51,7 @@ class SpecialOfferTest extends \PHPUnit_Framework_TestCase
     public function testBadVariantIds()
     {
         $this->set('variantIds','{}');
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\JsonException::class);
         $this->offer->getVariantIds();
     }
 
@@ -64,19 +64,20 @@ class SpecialOfferTest extends \PHPUnit_Framework_TestCase
 
     public function testSlideshow()
     {
-        $this->offer->setSlideshow([0,1]);
-        $this->assertSame('[0,1]',$this->get('slideshow'));
+        $this->offer->setSlideshow([new \stdClass()]);
+        $this->assertSame('[{}]',$this->get('slideshow'));
         $arr = $this->offer->getSlideshow();
         $this->assertTrue(is_array($arr));
-        $this->assertSame(2,count($arr));
-        $this->assertSame(0,$arr[0]);
-        $this->assertSame(1,$arr[1]);
+        $this->assertSame(1,count($arr));
+        $o = $arr[0];
+        $this->assertTrue(is_object($o));
+        $this->assertSame(0,count(get_object_vars($o)));
     }
 
     public function testBadSlideshow()
     {
         $this->set('slideshow','{}');
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\JsonException::class);
         $this->offer->getSlideshow();
     }
 }

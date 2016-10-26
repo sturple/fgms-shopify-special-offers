@@ -170,9 +170,7 @@ class SpecialOffer
      */
     public function getSlideshow()
     {
-        $retr = \Fgms\SpecialOffersBundle\Utility\Json::decode($this->slideshow);
-        if (!is_array($retr)) throw new \LogicException('slideshow is not JSON array');
-        return $retr;
+        return \Fgms\SpecialOffersBundle\Utility\Json::decodeObjectArray($this->slideshow);
     }
 
     /**
@@ -292,9 +290,7 @@ class SpecialOffer
      */
     public function getVariantIds()
     {
-        $retr = \Fgms\SpecialOffersBundle\Utility\Json::decode($this->variantIds);
-        if (!is_array($retr)) throw new \LogicException('variantIds is not JSON array');
-        return $retr;
+        return \Fgms\SpecialOffersBundle\Utility\Json::decodeIntegerArray($this->variantIds);
     }
 
     /**
