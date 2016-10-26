@@ -48,6 +48,11 @@ class SpecialOffer
     private $saleSummary;
 
     /**
+     * @ORM\Column(type="text")
+     */
+    private $variantIds = '[]';
+
+    /**
      * @ORM\Column(type="integer",nullable=true)
      */
     private $discountCents;
@@ -257,5 +262,31 @@ class SpecialOffer
     public function getDiscountPercent()
     {
         return $this->discountPercent;
+    }
+
+    /**
+     * Set variantIds
+     *
+     * @param array $variantIds
+     *
+     * @return SpecialOffer
+     */
+    public function setVariantIds(array $variantIds)
+    {
+        $this->variantIds = \Fgms\SpecialOffersBundle\Utility\Json::encode($variantIds);
+
+        return $this;
+    }
+
+    /**
+     * Get variantIds
+     *
+     * @return array
+     */
+    public function getVariantIds()
+    {
+        $retr = \Fgms\SpecialOffersBundle\Utility\Json::decode($this->variantIds);
+        if (!is_array($retr)) throw new \LogicException('variantIds is not JSON array');
+        return $retr;
     }
 }
