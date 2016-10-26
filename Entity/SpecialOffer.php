@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="Fgms\SpecialOffersBundle\Repository\SpecialOfferRepository")
- * @ORM\Table(name="special_offer",indexes={@ORM\Index(name="start_idx",columns={"start"}),@ORM\Index(name="end_idx",columns={"end"})})
+ * @ORM\Table(name="special_offer")
  */
 class SpecialOffer
 {
@@ -61,6 +61,11 @@ class SpecialOffer
      * @ORM\Column(type="float",nullable=true)
      */
     private $discountPercent;
+
+    /**
+     * @ORM\Column(type="string",length=7)
+     */
+    private $status;
 
     /**
      * Get id
@@ -290,5 +295,29 @@ class SpecialOffer
         $retr = \Fgms\SpecialOffersBundle\Utility\Json::decode($this->variantIds);
         if (!is_array($retr)) throw new \LogicException('variantIds is not JSON array');
         return $retr;
+    }
+
+    /**
+     * Set status
+     *
+     * @param string $status
+     *
+     * @return SpecialOffer
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * Get status
+     *
+     * @return string
+     */
+    public function getStatus()
+    {
+        return $this->status;
     }
 }

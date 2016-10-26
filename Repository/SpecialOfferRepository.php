@@ -4,67 +4,48 @@ namespace Fgms\SpecialOffersBundle\Repository;
 
 class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
 {
-    private function addRangeToQueryBuilder(\DateTime $from = null, \DateTime $to = null, $table, $property, \Doctrine\ORM\QueryBuilder $qb)
-    {
-        if (!is_null($from)) {
-            $qb->andWhere($qb->expr()->gt($table . '.' . $property,':from'))
-                ->setParameter('from',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($from));
-        }
-        if (!is_null($to)) {
-            $qb->andWhere($qb->expr()->lte($table . '.' . $property,':to'))
-                ->setParameter('to',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($to));
-        }
-    }
-
-    private function executeRangeQuery(\DateTime $from = null, \DateTime $to = null, $property)
+    private function executeRangeQuery(\DateTime $to, $property, $status)
     {
         $qb = $this->createQueryBuilder('so');
-        $this->addRangeToQueryBuilder($from,$to,'so',$property,$qb);
+        $qb->andWhere($qb->expr()->lte('so.' . $property,':to'))
+            ->setParameter('to',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($to))
+            ->andWhere($qb->expr()->eq('so.status',':status'))
+            ->setParameter('status',$status);
         $q = $qb->getQuery();
         return $q->getResult();
     }
 
     /**
-     * Obtains all SpecialOffer entities which start between
-     * certain dates and times.
+     * Obtains all SpecialOffer entities which start before or
+     * at a certain date and time and which have not already been
+     * started.
      *
-     * @param DateTime|null $from
-     *  The time at which the search shall begin, exclusive.  If
-     *  null all SpecialOffer entities from \em to until the beginning
-     *  of time shall be returned.
-     * @param DateTime|null $to
-     *  The time at which the search shall end, inclusive.  If null
-     *  all SpecialOffer entities from \em from until the end of time
-     *  shall be returned.
+     * @param DateTime $to
+     *  The date and time at which the search shall end, inclusive.
      *
      * @return array
-     *  A collection of SpecialOffer entities which start between
-     *  \em from and \em to.
+     *  A collection of SpecialOffer entities which start before or
+     *  at \em to.
      */
-    public function getStarting(\DateTime $from = null, \DateTime $to = null)
+    public function getStarting(\DateTime $to)
     {
-        return $this->executeRangeQuery($from,$to,'start');
+        return $this->executeRangeQuery($to,'start','pending');
     }
 
     /**
-     * Obtains all SpecialOffer entities which end between
-     * certain dates and times.
+     * Obtains all SpecialOffer entities which end before or
+     * at a certain date and time and which have already started
+     * and not already ended.
      *
-     * @param DateTime|null $from
-     *  The time at which the search shall begin, exclusive.  If
-     *  null all SpecialOffer entities from \em to until the beginning
-     *  of time shall be returned.
-     * @param DateTime|null $to
-     *  The time at which the search shall end, inclusive.  If null
-     *  all SpecialOffer entities from \em from until the end of time
-     *  shall be returned.
+     * @param DateTime $to
+     *  The date and time at which the search shall end, inclusive.
      *
      * @return array
-     *  A collection of SpecialOffer entities which end between \em from
-     *  and \em to.
+     *  A collection of SpecialOffer entities which end before or
+     *  at \em to.
      */
-    public function getEnding(\DateTime $from = null, \DateTime $to = null)
+    public function getEnding(\DateTime $to)
     {
-        return $this->executeRangeQuery($from,$to,'end');
+        return $this->executeRangeQuery($to,'end','active');
     }
 }
