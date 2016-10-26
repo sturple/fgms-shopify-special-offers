@@ -38,9 +38,9 @@ class SpecialOffer
     private $slideshow = '[]';
 
     /**
-     * @ORM\Column(type="text",nullable=true)
+     * @ORM\Column(type="text")
      */
-    private $tag;
+    private $tags = '[]';
 
     /**
      * @ORM\Column(type="text",nullable=true)
@@ -174,27 +174,27 @@ class SpecialOffer
     }
 
     /**
-     * Set tag
+     * Set tags
      *
-     * @param string $tag
+     * @param array $tags
      *
      * @return SpecialOffer
      */
-    public function setTag($tag)
+    public function setTags(array $tags)
     {
-        $this->tag = $tag;
+        $this->tags = \Fgms\SpecialOffersBundle\Utility\Json::encode($tags);
 
         return $this;
     }
 
     /**
-     * Get tag
+     * Get tags
      *
-     * @return string
+     * @return array
      */
-    public function getTag()
+    public function getTags()
     {
-        return $this->tag;
+        return \Fgms\SpecialOffersBundle\Utility\Json::decodeStringArray($this->tags);
     }
 
     /**

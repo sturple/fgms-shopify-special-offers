@@ -50,6 +50,15 @@ class Json
         return $retr;
     }
 
+    public static function decodeStringArray($json, $options = 0)
+    {
+        $retr = self::decodeArray($json,false,2,$options);
+        foreach ($retr as $s) if (!is_string($s)) throw new \Fgms\SpecialOffersBundle\Exception\JsonException(
+            'Expected JSON array of strings'
+        );
+        return $retr;
+    }
+
     public static function decodeObjectArray($json, $depth = 512, $options = 0)
     {
         $retr = self::decodeArray($json,false,$depth,$options);

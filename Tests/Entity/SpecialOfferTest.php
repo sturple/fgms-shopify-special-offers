@@ -80,4 +80,29 @@ class SpecialOfferTest extends \PHPUnit_Framework_TestCase
         $this->expectException(\Fgms\SpecialOffersBundle\Exception\JsonException::class);
         $this->offer->getSlideshow();
     }
+
+    public function testDefaultTags()
+    {
+        $arr = $this->offer->getTags();
+        $this->assertTrue(is_array($arr));
+        $this->assertSame(0,count($arr));
+    }
+
+    public function testTags()
+    {
+        $this->offer->setTags(["aoeu","foo"]);
+        $this->assertSame('["aoeu","foo"]',$this->get('tags'));
+        $arr = $this->offer->getTags();
+        $this->assertTrue(is_array($arr));
+        $this->assertSame(2,count($arr));
+        $this->assertSame('aoeu',$arr[0]);
+        $this->assertSame('foo',$arr[1]);
+    }
+
+    public function testBadTags()
+    {
+        $this->set('tags','{}');
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\JsonException::class);
+        $this->offer->getTags();
+    }
 }
