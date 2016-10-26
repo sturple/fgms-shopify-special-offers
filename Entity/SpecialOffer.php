@@ -35,7 +35,7 @@ class SpecialOffer
     /**
      * @ORM\Column(type="text")
      */
-    private $slideshow;
+    private $slideshow = '[]';
 
     /**
      * @ORM\Column(type="text",nullable=true)
@@ -147,13 +147,13 @@ class SpecialOffer
     /**
      * Set slideshow
      *
-     * @param string $slideshow
+     * @param array $slideshow
      *
      * @return SpecialOffer
      */
-    public function setSlideshow($slideshow)
+    public function setSlideshow(array $slideshow)
     {
-        $this->slideshow = $slideshow;
+        $this->slideshow = \Fgms\SpecialOffersBundle\Utility\Json::encode($slideshow);
 
         return $this;
     }
@@ -161,11 +161,13 @@ class SpecialOffer
     /**
      * Get slideshow
      *
-     * @return string
+     * @return array
      */
     public function getSlideshow()
     {
-        return $this->slideshow;
+        $retr = \Fgms\SpecialOffersBundle\Utility\Json::decode($this->slideshow);
+        if (!is_array($retr)) throw new \LogicException('slideshow is not JSON array');
+        return $retr;
     }
 
     /**
