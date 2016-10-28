@@ -26,6 +26,11 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return $this->getDoctrine()->getEntityManager();
     }
 
+    private function getEventDispatcher()
+    {
+        return $this->getContainer()->get('event_dispatcher');
+    }
+
     private function getStoreName(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
     {
         return preg_replace('/\\.myshopify\\.com$/u','',$settings->getStoreName());
@@ -51,13 +56,21 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         $offers = $repo->getStarting($now,$this->getStoreName($settings));
         $strategy = $this->getSpecialOfferStrategy($settings);
         $em = $this->getEntityManager();
+        $dispatcher = $this->getEventDispatcher();
         foreach ($offers as $o) {
             $changes = $strategy->apply($o);
             $o->setStatus('active')
                 ->setApplied($now);
-            foreach ($changes as $c) $em->persist($c);
+            foreach ($changes as $c) {
+                $o->addPriceChange($c);
+                $em->persist($c);
+            }
             $em->persist($o);
             $em->flush();
+            $dispatcher->dispatch(
+                'specialoffers.started',
+                new \Fgms\SpecialOffersBundle\Event\PriceChangeEvent($o,$changes)
+            );
         }
         return count($offers);
     }
@@ -68,13 +81,21 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         $offers = $repo->getEnding($now,$this->getStoreName($settings));
         $strategy = $this->getSpecialOfferStrategy($settings);
         $em = $this->getEntityManager();
+        $dispatcher = $this->getEventDispatcher();
         foreach ($offers as $o) {
             $changes = $strategy->revert($o);
             $o->setStatus('expired')
                 ->setReverted($now);
-            foreach ($changes as $c) $em->persist($c);
+            foreach ($changes as $c) {
+                $o->addPriceChange($c);
+                $em->persist($c);
+            }
             $em->persist($o);
             $em->flush();
+            $dispatcher->dispatch(
+                'specialoffers.ended',
+                new \Fgms\SpecialOffersBundle\Event\PriceChangeEvent($o,$changes)
+            );
         }
         return count($offers);
     }
