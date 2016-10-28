@@ -26,29 +26,30 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return $this->getDoctrine()->getEntityManager();
     }
 
-    private function getShopify()
+    private function getStoreName(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
     {
-        $doctrine = $this->getDoctrine();
-        $repo = $doctrine->getRepository(\Fgms\ShopifyEmbed\Entity\ShopSettings::class);
-        $settings = $repo->findOneBy(['nameSpace' => 'FgmsSpecialOffersBundle','status' => 'active']);
-        if (is_null($settings)) throw new \LogicException('No StoreSettings entity');
-        $name = preg_replace('/\\.myshopify\\.com$/u','',$settings->getStoreName());
+        return preg_replace('/\\.myshopify\\.com$/u','',$settings->getStoreName());
+    }
+
+    private function getShopify(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
+    {
+        $name = $this->getStoreName($settings);
         $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient('','',$name);
         $token = $settings->getAccessToken();
         $shopify->setToken($token);
         return $shopify;
     }
 
-    private function getSpecialOfferStrategy()
+    private function getSpecialOfferStrategy(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
     {
-        return new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify());
+        return new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify($settings));
     }
 
-    private function start(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now)
+    private function start(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
     {
         $repo = $this->getSpecialOfferRepository();
-        $offers = $repo->getStarting($now);
-        $strategy = $this->getSpecialOfferStrategy();
+        $offers = $repo->getStarting($now,$this->getStoreName($settings));
+        $strategy = $this->getSpecialOfferStrategy($settings);
         $em = $this->getEntityManager();
         foreach ($offers as $o) {
             $changes = $strategy->apply($o);
@@ -60,11 +61,11 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return count($offers);
     }
 
-    private function end(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now)
+    private function end(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
     {
         $repo = $this->getSpecialOfferRepository();
-        $offers = $repo->getEnding($now);
-        $strategy = $this->getSpecialOfferStrategy();
+        $offers = $repo->getEnding($now,$this->getStoreName($settings));
+        $strategy = $this->getSpecialOfferStrategy($settings);
         $em = $this->getEntityManager();
         foreach ($offers as $o) {
             $changes = $strategy->revert($o);
@@ -76,15 +77,33 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return count($offers);
     }
 
+    private function getSiteSettings()
+    {
+        $doctrine = $this->getDoctrine();
+        $repo = $doctrine->getRepository(\Fgms\ShopifyEmbed\Entity\ShopSettings::class);
+        return $repo->findBy([
+            'nameSpace' => 'FgmsSpecialOffersBundle',
+            'status' => 'active'
+        ]);
+    }
+
     protected function execute(\Symfony\Component\Console\Input\InputInterface $input, \Symfony\Component\Console\Output\OutputInterface $output)
     {
-        $doctrine = $this->getContainer()->get('doctrine');
-        $now = new \DateTime();
         $tz = new \DateTimeZone(date_default_timezone_get());
-        $now->setTimezone($tz);
-        $output->writeln(sprintf('Current time is %s',$now->format(\DateTime::ATOM)));
-        $started = $this->start($output,$now);
-        $ended = $this->end($output,$now);
-        $output->writeln(sprintf('Started %d, Ended %d',$started,$ended));
+        foreach ($this->getSiteSettings() as $settings) {
+            $now = new \DateTime();
+            $now->setTimezone($tz);
+            $output->writeln(
+                sprintf(
+                    'Processing "%s" at %s',
+                    $this->getStoreName($settings),
+                    $now->format(\DateTime::ATOM)
+                )
+            );
+            $started = $this->start($output,$now,$settings);
+            $output->writeln(sprintf('Started %d',$started));
+            $ended = $this->end($output,$now,$settings);
+            $output->writeln(sprintf('Ended %d',$ended));
+        }
     }
 }

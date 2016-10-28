@@ -83,6 +83,11 @@ class SpecialOffer
     private $priceChanges;
 
     /**
+     * @ORM\Column(type="string",length=255)
+     */
+    private $storeName;
+
+    /**
      * Get id
      *
      * @return integer
@@ -421,5 +426,29 @@ class SpecialOffer
     public function getPriceChanges()
     {
         return $this->priceChanges;
+    }
+
+    /**
+     * Set storeName
+     *
+     * @param string $storeName
+     *
+     * @return SpecialOffer
+     */
+    public function setStoreName($storeName)
+    {
+        $this->storeName = $storeName;
+
+        return $this;
+    }
+
+    /**
+     * Get storeName
+     *
+     * @return string
+     */
+    public function getStoreName()
+    {
+        return $this->storeName;
     }
 }
