@@ -20,15 +20,9 @@ class ItemSpecialOfferStrategyException extends SpecialOfferStrategyException
      *  offer.
      * @param SpecialOffer $offer
      */
-    public function __construct($id, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
+    public function __construct($msg, $id, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
-        parent::__construct(
-            sprintf(
-                '%d is already on special offer (attempted to apply SpecialOffer %d)',
-                $id,
-                $offer->getId()
-            )
-        );
+        parent::__construct($msg);
         $this->id = $id;
         $this->offer = $offer;
     }

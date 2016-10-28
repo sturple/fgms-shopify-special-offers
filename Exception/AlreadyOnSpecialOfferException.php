@@ -9,4 +9,16 @@ namespace Fgms\SpecialOffersBundle\Exception;
  */
 class AlreadyOnSpecialOfferException extends ItemSpecialOfferStrategyException
 {
+    public function __construct($id, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
+    {
+        parent::__construct(
+            sprintf(
+                '%d is already on special offer (attempted to apply SpecialOffer %d)',
+                $id,
+                $offer->getId()
+            ),
+            $id,
+            $offer
+        );
+    }
 }
