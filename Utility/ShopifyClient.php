@@ -137,6 +137,6 @@ class ShopifyClient implements ShopifyInterface
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $this->raiseError($e);
         }
-        return ShopifyObject::create($response->getBody());
+        return $this->decodeResponse($response);
     }
 }
