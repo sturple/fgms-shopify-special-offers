@@ -68,6 +68,21 @@ class SpecialOffer
     private $status;
 
     /**
+     * @ORM\Column(type="datetime",nullable=true)
+     */
+    private $applied;
+
+    /**
+     * @ORM\Column(type="datetime",nullable=true)
+     */
+    private $reverted;
+
+    /**
+     * @ORM\OneToMany(targetEntity="PriceChange",mappedBy="specialOffer")
+     */
+    private $priceChanges;
+
+    /**
      * Get id
      *
      * @return integer
@@ -315,5 +330,95 @@ class SpecialOffer
     public function getStatus()
     {
         return $this->status;
+    }
+
+    /**
+     * Set applied
+     *
+     * @param \DateTime $applied
+     *
+     * @return SpecialOffer
+     */
+    public function setApplied($applied)
+    {
+        $this->applied = \Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($applied);
+
+        return $this;
+    }
+
+    /**
+     * Get applied
+     *
+     * @return \DateTime
+     */
+    public function getApplied()
+    {
+        return $this->applied = \Fgms\SpecialOffersBundle\Utility\DateTime::fromDoctrine($this->applied);
+    }
+
+    /**
+     * Set reverted
+     *
+     * @param \DateTime $reverted
+     *
+     * @return SpecialOffer
+     */
+    public function setReverted($reverted)
+    {
+        $this->reverted = \Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($reverted);
+
+        return $this;
+    }
+
+    /**
+     * Get reverted
+     *
+     * @return \DateTime
+     */
+    public function getReverted()
+    {
+        return $this->reverted = \Fgms\SpecialOffersBundle\Utility\DateTime::fromDoctrine($this->reverted);
+    }
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->priceChanges = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Add priceChange
+     *
+     * @param \Fgms\SpecialOffersBundle\Entity\PriceChange $priceChange
+     *
+     * @return SpecialOffer
+     */
+    public function addPriceChange(\Fgms\SpecialOffersBundle\Entity\PriceChange $priceChange)
+    {
+        $this->priceChanges[] = $priceChange;
+
+        return $this;
+    }
+
+    /**
+     * Remove priceChange
+     *
+     * @param \Fgms\SpecialOffersBundle\Entity\PriceChange $priceChange
+     */
+    public function removePriceChange(\Fgms\SpecialOffersBundle\Entity\PriceChange $priceChange)
+    {
+        $this->priceChanges->removeElement($priceChange);
+    }
+
+    /**
+     * Get priceChanges
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getPriceChanges()
+    {
+        return $this->priceChanges;
     }
 }
