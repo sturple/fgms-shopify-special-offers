@@ -305,6 +305,7 @@ class SpecialOffer
      */
     public function getVariantIds()
     {
+        if (PHP_INT_SIZE < 8) throw new \LogicException('PHP_INT_SIZE must be at least 8');
         return \Fgms\SpecialOffersBundle\Utility\Json::decodeIntegerArray($this->variantIds);
     }
 

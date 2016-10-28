@@ -38,7 +38,7 @@ class PriceChange
     private $afterCents;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="bigint")
      */
     private $variantId;
 
@@ -169,6 +169,7 @@ class PriceChange
      */
     public function getVariantId()
     {
-        return $this->variantId;
+        if (PHP_INT_SIZE < 8) throw new \LogicException('PHP_INT_SIZE must be at least 8');
+        return intval($this->variantId);
     }
 }
