@@ -48,7 +48,6 @@ class ShopifyClient implements ShopifyInterface
 
     private function getUrl($endpoint)
     {
-        var_dump($endpoint);
         return sprintf(
             'https://%s.myshopify.com/%s',
             $this->store_name,
