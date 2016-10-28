@@ -11,16 +11,52 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         $this->setHelp('Performs all outstanding tasks for the FgmsSpecialOffersBundle');
     }
 
+    private function getDoctrine()
+    {
+        return $this->getContainer()->get('doctrine');
+    }
+
     private function getSpecialOfferRepository()
     {
-        $doctrine = $this->getContainer()->get('doctrine');
-        return $doctrine->getRepository(\Fgms\SpecialOffersBundle\Entity\SpecialOffer::class);
+        return $this->getDoctrine()->getRepository(\Fgms\SpecialOffersBundle\Entity\SpecialOffer::class);
+    }
+
+    private function getEntityManager()
+    {
+        return $this->getDoctrine()->getEntityManager();
+    }
+
+    private function getShopify()
+    {
+        $doctrine = $this->getDoctrine();
+        $repo = $doctrine->getRepository(\Fgms\ShopifyEmbed\Entity\ShopSettings::class);
+        $settings = $repo->findOneBy(['nameSpace' => 'FgmsSpecialOffersBundle','status' => 'active']);
+        if (is_null($settings)) throw new \LogicException('No StoreSettings entity');
+        $name = preg_replace('/\\.myshopify\\.com$/u','',$settings->getStoreName());
+        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient('','',$name);
+        $token = $settings->getAccessToken();
+        $shopify->setToken($token);
+        return $shopify;
+    }
+
+    private function getSpecialOfferStrategy()
+    {
+        return new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify());
     }
 
     private function start(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now)
     {
         $repo = $this->getSpecialOfferRepository();
         $offers = $repo->getStarting($now);
+        $strategy = $this->getSpecialOfferStrategy();
+        $em = $this->getEntityManager();
+        foreach ($offers as $o) {
+            $changes = $strategy->apply($o);
+            $o->setStatus('active');
+            foreach ($changes as $c) $em->persist($c);
+            $em->persist($o);
+            $em->flush();
+        }
         return count($offers);
     }
 
@@ -28,6 +64,15 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
     {
         $repo = $this->getSpecialOfferRepository();
         $offers = $repo->getEnding($now);
+        $strategy = $this->getSpecialOfferStrategy();
+        $em = $this->getEntityManager();
+        foreach ($offers as $o) {
+            $changes = $strategy->revert($o);
+            $o->setStatus('expired');
+            foreach ($changes as $c) $em->persist($c);
+            $em->persist($o);
+            $em->flush();
+        }
         return count($offers);
     }
 
