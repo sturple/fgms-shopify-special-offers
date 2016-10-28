@@ -53,7 +53,8 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         $em = $this->getEntityManager();
         foreach ($offers as $o) {
             $changes = $strategy->apply($o);
-            $o->setStatus('active');
+            $o->setStatus('active')
+                ->setApplied($now);
             foreach ($changes as $c) $em->persist($c);
             $em->persist($o);
             $em->flush();
@@ -69,7 +70,8 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         $em = $this->getEntityManager();
         foreach ($offers as $o) {
             $changes = $strategy->revert($o);
-            $o->setStatus('expired');
+            $o->setStatus('expired')
+                ->setReverted($now);
             foreach ($changes as $c) $em->persist($c);
             $em->persist($o);
             $em->flush();
