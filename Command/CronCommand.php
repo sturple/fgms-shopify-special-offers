@@ -34,7 +34,6 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
     protected function execute(\Symfony\Component\Console\Input\InputInterface $input, \Symfony\Component\Console\Output\OutputInterface $output)
     {
         $doctrine = $this->getContainer()->get('doctrine');
-        $repo = $doctrine->getRepository(\Fgms\SpecialOffersBundle\Entity\Run::class);
         $now = new \DateTime();
         $tz = new \DateTimeZone(date_default_timezone_get());
         $now->setTimezone($tz);
