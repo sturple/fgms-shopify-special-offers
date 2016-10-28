@@ -65,7 +65,7 @@ class SpecialOffer
     /**
      * @ORM\Column(type="string",length=7)
      */
-    private $status;
+    private $status = 'pending';
 
     /**
      * @ORM\Column(type="datetime",nullable=true)
