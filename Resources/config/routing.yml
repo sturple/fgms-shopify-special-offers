@@ -1,3 +1,15 @@
 fgms_special_offers_homepage:
     path:     /
     defaults: { _controller: FgmsSpecialOffersBundle:Default:index }
+
+fgms_special_offers_oauth:
+    path:     /oauth
+    defaults: { _controller: FgmsSpecialOffersBundle:Default:oauth }
+
+fgms_special_offers_help:
+    path:     /help
+    defaults: { _controller: FgmsSpecialOffersBundle:Default:help }
+
+fgms_special_offers_preferences:
+    path:     /preferences
+    defaults: { _controller: FgmsSpecialOffersBundle:Default:preferences }
