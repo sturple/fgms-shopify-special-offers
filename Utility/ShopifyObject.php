@@ -117,4 +117,64 @@ class ShopifyObject
     {
         return $this->get($key,'string');
     }
+
+    private function toObject($key, $obj)
+    {
+        if (is_null($obj)) return null;
+        return new self($obj,$this->json,$this->join($key));
+    }
+
+    /**
+     * Obtains a property of the underlying object as an
+     * optional object.
+     *
+     * @param string $key
+     *
+     * @return ShopifyObject|null
+     *  Returns null if \em key is not present.
+     */
+    public function getOptionalObject($key)
+    {
+        return $this->toObject($key,$this->getOptional($key,'object'));
+    }
+
+    /**
+     * Obtains a property of the underlying object as an
+     * object.
+     *
+     * @param string $key
+     *
+     * @return ShopifyObject
+     */
+    public function getObject($key)
+    {
+        return $this->toObject($key,$this->get($key,'object'));
+    }
+
+    /**
+     * Obtains a property of the underlying object as an
+     * optional integer.
+     *
+     * @param string $key
+     *
+     * @return int|null
+     *  Returns null if \em key is not present.
+     */
+    public function getOptionalInteger($key)
+    {
+        return $this->getOptional($key,'integer');
+    }
+
+    /**
+     * Obtains a property of the underlying object as an
+     * integer.
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    public function getInteger($key)
+    {
+        return $this->get($key,'integer');
+    }
 }
