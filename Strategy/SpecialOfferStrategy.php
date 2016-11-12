@@ -27,7 +27,13 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 
     private function getVariants(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
-        foreach ($offer->getVariantIds() as $id) yield $this->getVariant($id);
+        foreach ($offer->getVariantIds() as $id) {
+            $v = $this->getVariant($id);
+            yield (object)[
+                'variant' => $v,
+                'product' => $this->getProduct($v->getInteger('product_id'))
+            ];
+        }
     }
 
     private function toCents($str)
@@ -134,7 +140,8 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
         );
         //  Generate list of PriceChange entities
         $changes = [];
-        foreach ($this->getVariants($offer) as $v) {
+        foreach ($this->getVariants($offer) as $obj) {
+            $v = $obj->variant;
             //  Price change
             $compare_at = $v->getOptionalString('compare_at_price');
             $vid = $v->getInteger('id');
@@ -158,7 +165,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 )
             );
             //  Tags change
-            $product = $this->getProduct($v->getInteger('product_id'));
+            $product = $obj->product;
             $tags = $this->tagsToArray($product->getString('tags'));
             $pc->setBeforeTags($tags)
                 ->setAfterTags($this->addTags($tags,$offer->getTags()));
@@ -176,7 +183,8 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
     {
         //  Generate list of PriceChange entities
         $changes = [];
-        foreach ($this->getVariants($offer) as $v) {
+        foreach ($this->getVariants($offer) as $obj) {
+            $v = $obj->variant;
             //  Price change
             $vid = $v->getInteger('id');
             $compare_at = $v->getOptionalString('compare_at_price');
@@ -193,7 +201,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 ->setBeforeCents($price)
                 ->setAfterCents($compare_at);
             //  Tags change
-            $product = $this->getProduct($v->getInteger('product_id'));
+            $product = $obj->product;
             $tags = $this->tagsToArray($product->getString('tags'));
             $pc->setBeforeTags($tags)
                 ->setAfterTags($this->removeTags($tags,$offer->getTags()));
