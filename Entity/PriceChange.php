@@ -43,6 +43,16 @@ class PriceChange
     private $variantId;
 
     /**
+     * @ORM\Column(type="text")
+     */
+    private $beforeTags = '[]';
+
+    /**
+     * @ORM\Column(type="text")
+     */
+    private $afterTags = '[]';
+
+    /**
      * Get id
      *
      * @return integer
@@ -171,5 +181,53 @@ class PriceChange
     {
         if (PHP_INT_SIZE < 8) throw new \LogicException('PHP_INT_SIZE must be at least 8');
         return intval($this->variantId);
+    }
+
+    /**
+     * Set beforeTags
+     *
+     * @param array $beforeTags
+     *
+     * @return PriceChange
+     */
+    public function setBeforeTags(array $beforeTags)
+    {
+        $this->beforeTags = \Fgms\SpecialOffersBundle\Utility\Json::encode($beforeTags);
+
+        return $this;
+    }
+
+    /**
+     * Get beforeTags
+     *
+     * @return array
+     */
+    public function getBeforeTags()
+    {
+        return \Fgms\SpecialOffersBundle\Utility\Json::decodeStringArray($this->beforeTags);
+    }
+
+    /**
+     * Set afterTags
+     *
+     * @param array $afterTags
+     *
+     * @return PriceChange
+     */
+    public function setAfterTags(array $afterTags)
+    {
+        $this->afterTags = \Fgms\SpecialOffersBundle\Utility\Json::encode($afterTags);
+
+        return $this;
+    }
+
+    /**
+     * Get afterTags
+     *
+     * @return array
+     */
+    public function getAfterTags()
+    {
+        return \Fgms\SpecialOffersBundle\Utility\Json::decodeStringArray($this->afterTags);
     }
 }
