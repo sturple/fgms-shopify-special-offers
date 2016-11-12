@@ -67,11 +67,19 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => null,
 				'price' => '8.00'
 			]
 		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
+			]
+		]);
 		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
 		$this->shopify->addResponse(new \stdClass());
 		$this->offer->setVariantIds([4]);
 		$arr = $this->apply(1);
@@ -80,12 +88,16 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(800,$change->getBeforeCents());
 		$this->assertSame(799,$change->getAfterCents());
 		$res = $this->shopify->getRequests();
-		$this->assertCount(2,$res);
+		$this->assertCount(4,$res);
 		$r = $res[0];
 		$this->assertSame('GET',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertCount(0,$r->args);
 		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[2];
 		$this->assertSame('PUT',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertArrayHasKey('variant',$r->args);
@@ -96,6 +108,15 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame('8.00',$v['compare_at_price']);
 		$this->assertArrayHasKey('price',$v);
 		$this->assertSame('7.99',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertSame('',$p['tags']);
 	}
 
 	public function testApplyZero()
@@ -103,11 +124,19 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => null,
 				'price' => '0.01'
 			]
 		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => 'foo'
+			]
+		]);
 		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
 		$this->shopify->addResponse(new \stdClass());
 		$this->offer->setVariantIds([4]);
 		$arr = $this->apply(1);
@@ -116,12 +145,16 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(1,$change->getBeforeCents());
 		$this->assertSame(0,$change->getAfterCents());
 		$res = $this->shopify->getRequests();
-		$this->assertCount(2,$res);
+		$this->assertCount(4,$res);
 		$r = $res[0];
 		$this->assertSame('GET',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertCount(0,$r->args);
 		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[2];
 		$this->assertSame('PUT',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertArrayHasKey('variant',$r->args);
@@ -132,6 +165,15 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame('0.01',$v['compare_at_price']);
 		$this->assertArrayHasKey('price',$v);
 		$this->assertSame('0.00',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertSame('foo',$p['tags']);
 	}
 
 	public function testApplyAlreadyOnSpecialOffer()
@@ -139,8 +181,15 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => '5.00',
 				'price' => '0.00'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
 			]
 		]);
 		$this->offer->setVariantIds([4]);
@@ -153,13 +202,84 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => null,
 				'price' => '0.00'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
 			]
 		]);
 		$this->offer->setVariantIds([4]);
 		$this->expectException(\LogicException::class);
 		$this->apply();
+	}
+
+	public function testApplyAddTags()
+	{
+		$this->shopify->addResponse([
+			'variant' => [
+				'id' => 4,
+				'product_id' => 1,
+				'compare_at_price' => null,
+				'price' => '0.01'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => 'foo'
+			]
+		]);
+		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
+		$this->shopify->addResponse(new \stdClass());
+		$this->offer->setVariantIds([4]);
+		$this->offer->setTags(['bar']);
+		$arr = $this->apply(1);
+		$change = $arr[0];
+		$this->assertSame(4,$change->getVariantId());
+		$this->assertSame(1,$change->getBeforeCents());
+		$this->assertSame(0,$change->getAfterCents());
+		$res = $this->shopify->getRequests();
+		$this->assertCount(4,$res);
+		$r = $res[0];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[2];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertArrayHasKey('variant',$r->args);
+		$v = $r->args['variant'];
+		$this->assertArrayHasKey('id',$v);
+		$this->assertSame(4,$v['id']);
+		$this->assertArrayHasKey('compare_at_price',$v);
+		$this->assertSame('0.01',$v['compare_at_price']);
+		$this->assertArrayHasKey('price',$v);
+		$this->assertSame('0.00',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertThat(
+			$p['tags'],
+			$this->logicalOr(
+				$this->identicalTo('foo, bar'),
+				$this->identicalTo('bar, foo')
+			)
+		);
 	}
 
 	public function testRevertEmpty()
@@ -172,11 +292,19 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => '85.00',
 				'price' => '60.00'
 			]
 		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
+			]
+		]);
 		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
 		$this->shopify->addResponse(new \stdClass());
 		$this->offer->setVariantIds([4]);
 		$arr = $this->revert(1);
@@ -208,8 +336,15 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->shopify->addResponse([
 			'variant' => [
 				'id' => 4,
+				'product_id' => 1,
 				'compare_at_price' => null,
 				'price' => '1.00'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
 			]
 		]);
 		$this->offer->setVariantIds([4]);

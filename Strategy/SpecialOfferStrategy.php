@@ -20,11 +20,14 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
         return $this->shopify->call('GET',sprintf('/admin/variants/%d.json',$id))->getObject('variant');
     }
 
+    private function getProduct($id)
+    {
+        return $this->shopify->call('GET',sprintf('/admin/products/%d.json',$id))->getObject('product');
+    }
+
     private function getVariants(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
-        $retr = [];
-        foreach ($offer->getVariantIds() as $id) $retr[] = $this->getVariant($id);
-        return $retr;
+        foreach ($offer->getVariantIds() as $id) yield $this->getVariant($id);
     }
 
     private function toCents($str)
@@ -50,10 +53,70 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
         );
     }
 
+    private function tagsToArray($tags)
+    {
+        return preg_split('/,\s*/u',$tags);
+    }
+
+    private function arrayToTags(array $tags)
+    {
+        $retr = '';
+        foreach ($tags as $tag) {
+            if ($retr !== '') $retr .= ', ';
+            $retr .= $tag;
+        }
+        return $retr;
+    }
+
+    private function tagsToMap(array $tags)
+    {
+        $retr = [];
+        foreach ($tags as $tag) $retr[$tag] = true;
+        return $retr;
+    }
+
+    private function mapToTags(array $map)
+    {
+        $retr = [];
+        foreach ($map as $tag => $active) if ($active) $retr[] = $tag;
+        return $retr;
+    }
+
+    private function addTags(array $initial, array $add)
+    {
+        $map = $this->tagsToMap($initial);
+        foreach ($add as $tag) $map[$tag] = true;
+        return $this->mapToTags($map);
+    }
+
+    private function applyChanges(array $objs)
+    {
+        $retr = [];
+        foreach ($objs as $obj) {
+            $change = $obj->change;
+            $retr[] = $change;
+            $vid = $change->getVariantId();
+            $pid = $obj->product->getInteger('id');
+            $compare_at = ($change->getType() === 'revert') ? null : $this->toPrice($change->getBeforeCents());
+            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
+                'variant' => [
+                    'id' => $vid,
+                    'price' => $this->toPrice($change->getAfterCents()),
+                    'compare_at_price' => $compare_at
+                ]
+            ]);
+            $this->shopify->call('PUT',sprintf('/admin/products/%d.json',$pid),[
+                'product' => [
+                    'id' => $pid,
+                    'tags' => $this->arrayToTags($change->getAfterTags())
+                ]
+            ]);
+        }
+        return $retr;
+    }
+
     public function apply(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
-        //  TODO: Tags
-        $vs = $this->getVariants($offer);
         $dc = $offer->getDiscountCents();
         $dp = $offer->getDiscountPercent();
         if (is_null($dc) === is_null($dp)) throw new \LogicException(
@@ -63,8 +126,9 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
             )
         );
         //  Generate list of PriceChange entities
-        $retr = [];
-        foreach ($vs as $v) {
+        $changes = [];
+        foreach ($this->getVariants($offer) as $v) {
+            //  Price change
             $compare_at = $v->getOptionalString('compare_at_price');
             $vid = $v->getInteger('id');
             if (!is_null($compare_at)) throw new \Fgms\SpecialOffersBundle\Exception\AlreadyOnSpecialOfferException(
@@ -86,29 +150,27 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                     $vid
                 )
             );
-            $retr[] = $pc;
+            //  Tags change
+            $product = $this->getProduct($v->getInteger('product_id'));
+            $tags = $this->tagsToArray($product->getString('tags'));
+            $pc->setBeforeTags($tags)
+                ->setAfterTags($this->addTags($tags,$offer->getTags()));
+            $changes[] = (object)[
+                'change' => $pc,
+                'variant' => $v,
+                'product' => $product
+            ];
         }
         //  Apply price changes to Shopify
-        foreach ($retr as $change) {
-            $vid = $change->getVariantId();
-            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
-                'variant' => [
-                    'id' => $vid,
-                    'compare_at_price' => $this->toPrice($change->getBeforeCents()),
-                    'price' => $this->toPrice($change->getAfterCents())
-                ]
-            ]);
-        }
-        return $retr;
+        return $this->applyChanges($changes);
     }
 
     public function revert(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
         //  TODO: Tags
-        $vs = $this->getVariants($offer);
         //  Generate list of PriceChange entities
         $retr = [];
-        foreach ($vs as $v) {
+        foreach ($this->getVariants($offer) as $v) {
             $vid = $v->getInteger('id');
             $compare_at = $v->getOptionalString('compare_at_price');
             if (is_null($compare_at)) throw new \Fgms\SpecialOffersBundle\Exception\NotOnSpecialOfferException(
