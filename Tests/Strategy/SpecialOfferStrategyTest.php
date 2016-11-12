@@ -313,12 +313,16 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(6000,$change->getBeforeCents());
 		$this->assertSame(8500,$change->getAfterCents());
 		$res = $this->shopify->getRequests();
-		$this->assertCount(2,$res);
+		$this->assertCount(4,$res);
 		$r = $res[0];
 		$this->assertSame('GET',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertCount(0,$r->args);
 		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[2];
 		$this->assertSame('PUT',$r->method);
 		$this->assertSame('/admin/variants/4.json',$r->endpoint);
 		$this->assertArrayHasKey('variant',$r->args);
@@ -329,6 +333,15 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(null,$v['compare_at_price']);
 		$this->assertArrayHasKey('price',$v);
 		$this->assertSame('85.00',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertSame('',$p['tags']);
 	}
 
 	public function testRevertNotOnSpecialOffer()
@@ -350,5 +363,63 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->offer->setVariantIds([4]);
 		$this->expectException(\Fgms\SpecialOffersBundle\Exception\NotOnSpecialOfferException::class);
 		$this->revert();
+	}
+
+	public function testRevertRemoveTags()
+	{
+		$this->shopify->addResponse([
+			'variant' => [
+				'id' => 4,
+				'product_id' => 1,
+				'compare_at_price' => '85.00',
+				'price' => '60.00'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => 'bar, foo'
+			]
+		]);
+		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
+		$this->shopify->addResponse(new \stdClass());
+		$this->offer->setVariantIds([4]);
+		$this->offer->setTags(['foo']);
+		$arr = $this->revert(1);
+		$change = $arr[0];
+		$this->assertSame(4,$change->getVariantId());
+		$this->assertSame(6000,$change->getBeforeCents());
+		$this->assertSame(8500,$change->getAfterCents());
+		$res = $this->shopify->getRequests();
+		$this->assertCount(4,$res);
+		$r = $res[0];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(0,$r->args);
+		$r = $res[2];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertArrayHasKey('variant',$r->args);
+		$v = $r->args['variant'];
+		$this->assertArrayHasKey('id',$v);
+		$this->assertSame(4,$v['id']);
+		$this->assertArrayHasKey('compare_at_price',$v);
+		$this->assertSame(null,$v['compare_at_price']);
+		$this->assertArrayHasKey('price',$v);
+		$this->assertSame('85.00',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertSame('bar',$p['tags']);
 	}
 }

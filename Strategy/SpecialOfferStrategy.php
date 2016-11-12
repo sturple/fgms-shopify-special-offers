@@ -89,6 +89,13 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
         return $this->mapToTags($map);
     }
 
+    private function removeTags(array $initial, array $remove)
+    {
+        $map = $this->tagsToMap($initial);
+        foreach ($remove as $tag) $map[$tag] = false;
+        return $this->mapToTags($map);
+    }
+
     private function applyChanges(array $objs)
     {
         $retr = [];
@@ -167,10 +174,10 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 
     public function revert(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
     {
-        //  TODO: Tags
         //  Generate list of PriceChange entities
-        $retr = [];
+        $changes = [];
         foreach ($this->getVariants($offer) as $v) {
+            //  Price change
             $vid = $v->getInteger('id');
             $compare_at = $v->getOptionalString('compare_at_price');
             if (is_null($compare_at)) throw new \Fgms\SpecialOffersBundle\Exception\NotOnSpecialOfferException(
@@ -185,19 +192,18 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 ->setVariantId($vid)
                 ->setBeforeCents($price)
                 ->setAfterCents($compare_at);
-            $retr[] = $pc;
+            //  Tags change
+            $product = $this->getProduct($v->getInteger('product_id'));
+            $tags = $this->tagsToArray($product->getString('tags'));
+            $pc->setBeforeTags($tags)
+                ->setAfterTags($this->removeTags($tags,$offer->getTags()));
+            $changes[] = (object)[
+                'change' => $pc,
+                'variant' => $v,
+                'product' => $product
+            ];
         }
         //  Apply price changes to Spotify
-        foreach ($retr as $change) {
-            $vid = $change->getVariantId();
-            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
-                'variant' => [
-                    'id' => $vid,
-                    'compare_at_price' => null,
-                    'price' => $this->toPrice($compare_at)
-                ]
-            ]);
-        }
-        return $retr;
+        return $this->applyChanges($changes);
     }
 }
