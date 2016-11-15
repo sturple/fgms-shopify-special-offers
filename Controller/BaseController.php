@@ -25,26 +25,37 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $doctrine->getRepository(\Fgms\SpecialOffersBundle\Entity\Store::class);
     }
 
-    protected function extractStoreName($store_addr)
+    protected function getStoreAddress($mixed)
     {
-        return preg_replace('/\\.myshopify\\.com$/u','',$store_addr);
+        if (!($mixed instanceof \Symfony\Component\HttpFoundation\Request)) return $mixed;
+        $retr = $mixed->query->get('shop');
+        if (!is_string($retr)) throw $this->createBadRequestException(
+            '"shop" missing or not string'
+        );
+        return $retr;
     }
 
-    protected function getStore($store_addr)
+    protected function getStoreName($mixed)
     {
+        $mixed = $this->getStoreAddress($mixed);
+        return preg_replace('/\\.myshopify\\.com$/u','',$mixed);
+    }
+
+    protected function getStore($mixed)
+    {
+        $mixed = $this->getStoreName($mixed);
         $repo = $this->getStoreRepository();
-        $store_name = $this->extractStoreName($store_addr);
-        return $repo->getByName($store_name);
+        return $repo->getByName($mixed);
     }
 
-    protected function getShopify($store_addr)
+    protected function getShopify($mixed)
     {
         $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient(
             $this->getApiKey(),
             $this->getSecret(),
-            $this->extractStoreName($store_addr)
+            $this->getStoreName($mixed)
         );
-        $store = $this->getStore($store_addr);
+        $store = $this->getStore($mixed);
         if (!is_null($store)) $shopify->setToken($store->getAccessToken());
         return $shopify;
     }
