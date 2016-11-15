@@ -17,10 +17,14 @@ class InstallController extends BaseController
         die();
     }
 
+    private function check(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        if ($this->getStore($request)) throw $this->createBadRequestException('Already installed');
+    }
+
     public function installAction(\Symfony\Component\HttpFoundation\Request $request)
     {
-        //  Already installed
-        if ($this->getStore($request)) return $this->doneAction();
+        $this->check($request);
         $router = $this->container->get('router');
         $return_url = $router->generate('fgms_special_offers_auth',[],\Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL);
         $install_url = sprintf(
@@ -35,9 +39,8 @@ class InstallController extends BaseController
 
     public function authAction(\Symfony\Component\HttpFoundation\Request $request)
     {
+        $this->check($request);
         $this->verify($request);
-        //  Already installed
-        if ($this->getStore($request)) return $this->doneAction();
         $code = $request->query->get('code');
         if (!is_string($code)) throw $this->createBadRequestException('No query string key "code"');
         $shopify = $this->getShopify($this->getStoreName($request));
