@@ -21,6 +21,11 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return $this->getDoctrine()->getRepository(\Fgms\SpecialOffersBundle\Entity\SpecialOffer::class);
     }
 
+    private function getStoreRepository()
+    {
+        return $this->getDoctrine()->getRepository(\Fgms\SpecialOffersBundle\Entity\Store::class);
+    }
+
     private function getEntityManager()
     {
         return $this->getDoctrine()->getEntityManager();
@@ -31,30 +36,24 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return $this->getContainer()->get('event_dispatcher');
     }
 
-    private function getStoreName(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
+    private function getShopify(\Fgms\SpecialOffersBundle\Entity\Store $store)
     {
-        return preg_replace('/\\.myshopify\\.com$/u','',$settings->getStoreName());
-    }
-
-    private function getShopify(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
-    {
-        $name = $this->getStoreName($settings);
-        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient('','',$name);
-        $token = $settings->getAccessToken();
-        $shopify->setToken($token);
+        $config = $this->getContainer()->getParameter('fgms_special_offers.config');
+        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient($config['api_key'],$config['secret'],$store->getName());
+        $shopify->setToken($store->getAccessToken());
         return $shopify;
     }
 
-    private function getSpecialOfferStrategy(\Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
+    private function getSpecialOfferStrategy(\Fgms\SpecialOffersBundle\Entity\Store $store)
     {
-        return new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify($settings));
+        return new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify($store));
     }
 
-    private function start(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
+    private function start(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\SpecialOffersBundle\Entity\Store $store)
     {
         $repo = $this->getSpecialOfferRepository();
-        $offers = $repo->getStarting($now,$this->getStoreName($settings));
-        $strategy = $this->getSpecialOfferStrategy($settings);
+        $offers = $repo->getStarting($now,$store);
+        $strategy = $this->getSpecialOfferStrategy($store);
         $em = $this->getEntityManager();
         $dispatcher = $this->getEventDispatcher();
         foreach ($offers as $o) {
@@ -75,11 +74,11 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return count($offers);
     }
 
-    private function end(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\ShopifyEmbed\Entity\ShopSettings $settings)
+    private function end(\Symfony\Component\Console\Output\OutputInterface $output, \DateTime $now, \Fgms\SpecialOffersBundle\Entity\Store $store)
     {
         $repo = $this->getSpecialOfferRepository();
-        $offers = $repo->getEnding($now,$this->getStoreName($settings));
-        $strategy = $this->getSpecialOfferStrategy($settings);
+        $offers = $repo->getEnding($now,$store);
+        $strategy = $this->getSpecialOfferStrategy($store);
         $em = $this->getEntityManager();
         $dispatcher = $this->getEventDispatcher();
         foreach ($offers as $o) {
@@ -100,7 +99,7 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
         return count($offers);
     }
 
-    private function getSiteSettings()
+    private function getAllStores()
     {
         $doctrine = $this->getDoctrine();
         $repo = $doctrine->getRepository(\Fgms\ShopifyEmbed\Entity\ShopSettings::class);
@@ -113,19 +112,19 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
     protected function execute(\Symfony\Component\Console\Input\InputInterface $input, \Symfony\Component\Console\Output\OutputInterface $output)
     {
         $tz = new \DateTimeZone(date_default_timezone_get());
-        foreach ($this->getSiteSettings() as $settings) {
+        foreach ($this->getStoreRepository()->getActive() as $store) {
             $now = new \DateTime();
             $now->setTimezone($tz);
             $output->writeln(
                 sprintf(
                     'Processing "%s" at %s',
-                    $this->getStoreName($settings),
+                    $store->getName(),
                     $now->format(\DateTime::ATOM)
                 )
             );
-            $started = $this->start($output,$now,$settings);
+            $started = $this->start($output,$now,$store);
             $output->writeln(sprintf('Started %d',$started));
-            $ended = $this->end($output,$now,$settings);
+            $ended = $this->end($output,$now,$store);
             $output->writeln(sprintf('Ended %d',$ended));
         }
     }

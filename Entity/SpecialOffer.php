@@ -83,9 +83,9 @@ class SpecialOffer
     private $priceChanges;
 
     /**
-     * @ORM\Column(type="string",length=255)
+     * @ORM\ManyToOne(targetEntity="Store",inversedBy="specialOffers")
      */
-    private $storeName;
+    private $store;
 
     /**
      * Get id
@@ -429,26 +429,26 @@ class SpecialOffer
     }
 
     /**
-     * Set storeName
+     * Set store
      *
-     * @param string $storeName
+     * @param \Fgms\SpecialOffersBundle\Entity\Store $store
      *
      * @return SpecialOffer
      */
-    public function setStoreName($storeName)
+    public function setStore(\Fgms\SpecialOffersBundle\Entity\Store $store = null)
     {
-        $this->storeName = $storeName;
+        $this->store = $store;
 
         return $this;
     }
 
     /**
-     * Get storeName
+     * Get store
      *
-     * @return string
+     * @return \Fgms\SpecialOffersBundle\Entity\Store
      */
-    public function getStoreName()
+    public function getStore()
     {
-        return $this->storeName;
+        return $this->store;
     }
 }
