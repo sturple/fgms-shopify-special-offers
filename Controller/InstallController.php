@@ -4,12 +4,41 @@ namespace Fgms\SpecialOffersBundle\Controller;
 
 class InstallController extends BaseController
 {
+    private function getStringFromRequest($key, \Symfony\Component\HttpFoundation\Request $request)
+    {
+        $retr = $request->query->get($key);
+        if (is_null($retr) || !is_string($retr)) throw $this->createBadRequestException(
+            sprintf(
+                '"%s" missing or not string',
+                $key
+            )
+        );
+        return $retr;
+    }
+
+    private function getStoreName(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        return $this->getStringFromRequest('shop',$request);
+    }
+
+    private function verify(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        $shopify = $this->getShopify($this->getStoreName($request));
+        if (!$shopify->verify($request)) throw $this->createBadRequestException('Verification failed');
+    }
+
+    private function doneAction()
+    {
+        //  TODO
+        var_dump('Done');
+        die();
+    }
+
     public function installAction(\Symfony\Component\HttpFoundation\Request $request)
     {
-        $store_name = $request->query->get('shop');
-        if (is_null($store_name) || !is_string($store_name)) throw $this->createBadRequestException(
-            '"shop" missing or not string'
-        );
+        $store_name = $this->getStoreName($request);
+        //  Already installed
+        if ($this->getStore($store_name)) return $this->doneAction();
         $router = $this->container->get('router');
         $return_url = $router->generate('fgms_special_offers_auth',[],\Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL);
         $install_url = sprintf(
@@ -20,5 +49,25 @@ class InstallController extends BaseController
             rawurlencode($return_url)
         );
         return $this->redirect($install_url);
+    }
+
+    public function authAction(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        $this->verify($request);
+        $store_name = $this->getStoreName($request);
+        //  Already installed
+        if ($this->getStore($store_name)) return $this->doneAction();
+        $code = $request->query->get('code');
+        if (!is_string($code)) throw $this->createBadRequestException('No query string key "code"');
+        $shopify = $this->getShopify($this->getStoreName($request));
+        $token = $shopify->getToken($code);
+        $store = new \Fgms\SpecialOffersBundle\Entity\Store();
+        $store->setName($this->extractStoreName($store_name));
+        $store->setAccessToken($token->getString('access_token'));
+        $doctrine = $this->getDoctrine();
+        $em = $doctrine->getManager();
+        $em->persist($store);
+        $em->flush();
+        return $this->doneAction();
     }
 }

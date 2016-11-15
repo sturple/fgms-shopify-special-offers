@@ -19,13 +19,34 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $this->getConfig()['secret'];
     }
 
-    protected function getShopify($store_name)
+    protected function getStoreRepository()
     {
-        return new \Fgms\SpecialOffersBundle\Utility\ShopifyClient(
+        $doctrine = $this->getDoctrine();
+        return $doctrine->getRepository(\Fgms\SpecialOffersBundle\Entity\Store::class);
+    }
+
+    protected function extractStoreName($store_addr)
+    {
+        return preg_replace('/\\.myshopify\\.com$/u','',$store_addr);
+    }
+
+    protected function getStore($store_addr)
+    {
+        $repo = $this->getStoreRepository();
+        $store_name = $this->extractStoreName($store_addr);
+        return $repo->getByName($store_name);
+    }
+
+    protected function getShopify($store_addr)
+    {
+        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient(
             $this->getApiKey(),
             $this->getSecret(),
-            $store_name
+            $this->extractStoreName($store_addr)
         );
+        $store = $this->getStore($store_addr);
+        if (!is_null($store)) $shopify->setToken($store->getAccessToken());
+        return $shopify;
     }
 
     protected function createBadRequestException($message = 'Bad Request', $previous = null)

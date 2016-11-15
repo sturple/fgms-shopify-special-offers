@@ -40,10 +40,32 @@ class ShopifyClient implements ShopifyInterface
         $this->token = $token;
     }
 
-    private function getToken()
+    /**
+     * Retrieves an API token.
+     *
+     * The API token will be set on this object
+     * and returned, there is no need to additionally
+     * call @ref setToken.
+     *
+     * @param string code
+     *
+     * @return ShopifyObject
+     */
+    public function getToken($code)
     {
-        if (!is_null($this->token)) return;
-        throw new \LogicException('getToken logic not implemented, please use setToken');
+        $request = new \GuzzleHttp\Psr7\Request(
+            'POST',
+            $this->getUrl('/admin/oauth/access_token'),
+            ['Content-Type' => 'application/json;charset=utf-8'],
+            Json::encode([
+                'client_id' => $this->api_key,
+                'client_secret' => $this->secret,
+                'code' => $code
+            ])
+        );
+        $obj = $this->execute($request);
+        $this->setToken($obj->getString('access_token'));
+        return $obj;
     }
 
     private function getUrl($endpoint)
@@ -71,7 +93,7 @@ class ShopifyClient implements ShopifyInterface
 
     private function getHeaders(array $args = [])
     {
-        $this->getToken();
+        if (is_null($this->token)) throw new \LogicException('No access token');
         return array_merge(
             ['X-Shopify-Access-Token' => $this->token],
             $args
@@ -129,14 +151,57 @@ class ShopifyClient implements ShopifyInterface
         );
     }
 
-    public function call($method, $endpoint, array $args = [])
+    private function execute(\GuzzleHttp\Psr7\Request $request)
     {
-        $request = $this->createRequest($method,$endpoint,$args);
         try {
             $response = $this->client->send($request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $this->raiseError($e);
         }
         return $this->decodeResponse($response);
+    }
+
+    public function call($method, $endpoint, array $args = [])
+    {
+        $request = $this->createRequest($method,$endpoint,$args);
+        return $this->execute($request);
+    }
+
+    private function getHmacValue($str)
+    {
+        //  "The characters & and % are replaced with %26 and %25 respectively
+        //  in keys and values."
+        $str = preg_replace('/&/u','%26',$str);
+        return preg_replace('/%/u','%25',$str);
+    }
+
+    private function getHmacKey($str)
+    {
+        $str = $this->getHmacValue($str);
+        //  "Additionally the = character is replaced with %3D in keys."
+        return preg_replace('/=/u','%3D',$str);
+    }
+
+    public function verify(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        $incoming = $request->query->get('hmac');
+        if (!is_string($incoming)) return false;
+        $material = [];
+        foreach ($request->query as $key => $value) {
+            //  "The hmac entry is removed from the map [...]"
+            if ($key === 'hmac') continue;
+            if (!is_string($value)) return false;
+            //  "Each key is concatenated with its value, separated by an = character,
+            //  to create a list of strings."
+            $material[] = $this->getHmacKey($key) . '=' . $this->getHmacValue($value);
+        }
+        //  "The list of key-value pairs is sorted lexicographically [...]"
+        usort($material,function ($a, $b) { return strcmp($a,$b);   });
+        //  "[...] and concatenated together with & to create a single string [...]"
+        $str = implode('&',$material);
+        //  "Lastly, this string processed through an HMAC-SHA256 using the Shared
+        //  Secret as the key."
+        $hmac = hash_hmac('sha256',$str,$this->secret);
+        return $hmac === $incoming;
     }
 }

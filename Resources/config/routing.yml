@@ -3,6 +3,11 @@ fgms_special_offers_install:
     defaults:
         _controller: FgmsSpecialOffersBundle:Install:install
 
+fgms_special_offers_auth:
+    path: /auth
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Install:auth
+
 fgms_special_offers_homepage:
     path:     /
     defaults: { _controller: FgmsSpecialOffersBundle:Default:index }
