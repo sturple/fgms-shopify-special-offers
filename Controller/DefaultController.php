@@ -52,7 +52,9 @@ class DefaultController extends BaseController
 
     public function createAction(\Symfony\Component\HttpFoundation\Request $request)
     {
-        throw new \LogicException('Unimplemented');
+        $store = $this->getCurrentStore($request);
+        $ctx = $this->getContext($store);
+        return $this->render('FgmsSpecialOffersBundle:Default:create.html.twig',$ctx);
     }
 
     public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
