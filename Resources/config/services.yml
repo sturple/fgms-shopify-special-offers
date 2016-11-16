@@ -2,3 +2,8 @@ services:
 #    fgms_special_offers.example:
 #        class: Fgms\SpecialOffersBundle\Example
 #        arguments: ["@service_id", "plain_value", %parameter%]
+    fgms_special_offers.to_https:
+        class: Fgms\SpecialOffersBundle\EventListener\ToHttpsListener
+        arguments: ["@router"]
+        tags:
+            -   { name: kernel.event_listener, event: kernel.controller, method: onKernelController }

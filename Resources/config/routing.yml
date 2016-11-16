@@ -14,15 +14,11 @@ fgms_special_offers_homepage:
 
 fgms_special_offers_create:
     path: /create
-    schemes:
-        -   https
     defaults:
         _controller: FgmsSpecialOffersBundle:Default:create
 
 fgms_special_offers_edit:
     path: /edit/{id}
-    schemes:
-        -   https
     defaults:
         _controller: FgmsSpecialOffersBundle:Default:edit
     requirements:
