@@ -7,7 +7,7 @@
 {% if offers is empty %}
 <p class="{{type|escape('html_attr')}}_offers no_offers">None</p>
 {% else %}
-<table class="{{type|escape('html_attr')}}_offers">
+<table class="{{type|escape('html_attr')}}_offers table">
 	<thead>
 		<tr>
 			<th>Title</th>
@@ -33,7 +33,7 @@
 			<td>{{offer.start|date(date_format)}}</td>
 			<td>{{offer.end|date(date_format)}}</td>
 			{% if link %}
-			<td><a href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
 			{% endif %}
 		</tr>
 		{% endfor %}
