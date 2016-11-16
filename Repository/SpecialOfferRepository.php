@@ -86,4 +86,27 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
         $q = $qb->getQuery();
         return $q->getResult();
     }
+
+    /**
+     * Obtains the SpecialOffer entity with a certain ID.
+     *
+     * @param int $id
+     * @param Store|null $store
+     *  A Store entity representing the Shopify store.  Defaults
+     *  to null.  If this is provided a SpecialOffer entity shall
+     *  only be returned if it is associated with this Store entity.
+     *
+     * @return SpecialOffer|null
+     */
+    public function getById($id, \Fgms\SpecialOffersBundle\Entity\Store $store = null)
+    {
+        $qb = $this->createQueryBuilder('so');
+        $this->addStore($qb,$store);
+        $qb->andWhere($qb->expr()->eq('so.id',':id'))
+            ->setParameter('id',$id);
+        $q = $qb->getQuery();
+        $arr = $q->getResult();
+        if (count($arr) !== 1) return null;
+        return $arr[0];
+    }
 }

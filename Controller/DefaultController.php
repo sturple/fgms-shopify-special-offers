@@ -57,6 +57,28 @@ class DefaultController extends BaseController
 
     public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
     {
-        throw new \LogicException('Unimplemented');
+        $store = $this->getCurrentStore($request);
+        $id = intval($id);
+        $repo = $this->getSpecialOfferRepository();
+        $offer = $repo->getById($id,$store);
+        if (is_null($offer)) throw $this->createNotFoundException(
+            sprintf(
+                'No SpecialOffer with ID %d in Store %d',
+                $id,
+                $store->getId()
+            )
+        );
+        $status = $offer->getStatus();
+        if ($status !== 'pending') throw $this->createNotFoundException(
+            sprintf(
+                'SpecialOffer %d has non-pending status "%s"',
+                $id,
+                $status
+            )
+        );
+        $ctx = $this->getContext($store,[
+            'offer' => $offer
+        ]);
+        return $this->render('FgmsSpecialOffersBundle:Default:edit.html.twig',$ctx);
     }
 }

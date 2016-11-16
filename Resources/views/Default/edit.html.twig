@@ -1,0 +1,11 @@
+{% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
+{% set title = 'Edit ' ~ offer.saleTitle %}
+
+{% block shopify_behavior_settings %}
+{{parent()}}
+{% include 'FgmsSpecialOffersBundle:Default:back.html.twig' %}
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}
