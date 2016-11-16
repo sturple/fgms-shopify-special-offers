@@ -2,27 +2,61 @@
 
 namespace Fgms\SpecialOffersBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-
-class DefaultController extends Controller
+class DefaultController extends BaseController
 {
-    public function indexAction()
+    private function getCurrentStore(\Symfony\Component\HttpFoundation\Request $request)
     {
-        return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig');
+        $session = $request->getSession();
+        $addr = $request->query->get('shop');
+        if (!is_null($addr)) {
+            $shopify = $this->getShopify($addr);
+            if (!$shopify->verify($request)) throw $this->createBadRequestException(
+                'Request does not verify'
+            );
+            $store = $this->getStoreName($addr);
+        } else {
+            $store = $session->get('store');
+            if (is_null($store)) throw $this->createBadRequestException(
+                'No store in request or session'
+            );
+        }
+        $entity = $this->getStore($store);
+        if (is_null($entity)) throw $this->createBadRequestException(
+            'No store "%s"',
+            $store
+        );
+        $session->set('store',$entity->getName());
+        return $entity;
     }
 
-    public function oauthAction()
+    private function getContext(\Fgms\SpecialOffersBundle\Entity\Store $store, array $curr = [])
     {
-        $this->service = $this->container->get('fg.shopify');
-        $this->shopify = $this->service->get_shopify('FgmsSpecialOffersBundle');
-        // this means that good to go
-        if (!empty($this->shopify)) {
-            $settings = $this->service->get_settings();
-            $settings['page']['title'] = 'Special Offers';
-            $settings['page']['data'] = 'This is Shopify Special offers';
-            return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig', $settings);
-        } else {
-            return $this->service->add_new_store();
-        }
+        return array_merge([
+            'store' => $store,
+            'api_key' => $this->getApiKey()
+        ],$curr);
+    }
+
+    public function indexAction(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        $store = $this->getCurrentStore($request);
+        $repo = $this->getSpecialOfferRepository();
+        $pending = $repo->getByStatus('pending',$store);
+        $active = $repo->getByStatus('active',$store);
+        $ctx = $this->getContext($store,[
+            'pending' => $pending,
+            'active' => $active
+        ]);
+        return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig',$ctx);
+    }
+
+    public function createAction(\Symfony\Component\HttpFoundation\Request $request)
+    {
+        throw new \LogicException('Unimplemented');
+    }
+
+    public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
+    {
+        throw new \LogicException('Unimplemented');
     }
 }

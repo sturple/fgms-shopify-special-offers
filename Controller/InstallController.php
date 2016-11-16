@@ -10,11 +10,14 @@ class InstallController extends BaseController
         if (!$shopify->verify($request)) throw $this->createBadRequestException('Verification failed');
     }
 
-    private function doneAction()
+    private function done(\Symfony\Component\HttpFoundation\Request $request, \Fgms\SpecialOffersBundle\Entity\Store $store)
     {
-        //  TODO
-        var_dump('Done');
-        die();
+        $session = $request->getSession();
+        $session->set('store',$store->getName());
+        $router = $this->container->get('router');
+        return $this->redirect(
+            $router->generate('fgms_special_offers_homepage',[],\Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL)
+        );
     }
 
     private function check(\Symfony\Component\HttpFoundation\Request $request)
@@ -52,6 +55,6 @@ class InstallController extends BaseController
         $em = $doctrine->getManager();
         $em->persist($store);
         $em->flush();
-        return $this->doneAction();
+        return $this->done($request,$store);
     }
 }

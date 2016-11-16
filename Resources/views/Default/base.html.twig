@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+	<head>
+		{% block head %}
+		<meta charset="UTF-8">
+		<title>{% block title %}Special Offers - {{title}}{% endblock %}</title>
+		<script src="https://cdn.shopify.com/s/assets/external/app.js"></script>
+		{% block shopify_init %}
+		<script type="text/javascript">
+			ShopifyApp.init({
+				{% block shopify_init_settings %}
+				apiKey: {{api_key|json_encode()|raw}},
+				shopOrigin: 'https://' + {{store.name|json_encode()|raw}} + '.myshopify.com',
+				{% endblock %}
+			});
+		</script>
+		{% endblock %}
+		{% block shopify_behavior %}
+		<script type="text/javascript">
+			ShopifyApp.ready(function () {
+				ShopifyApp.Bar.initialize({
+					{% block shopify_behavior_settings %}
+					title: {{title|json_encode()|raw}},
+					{% endblock %}
+				});
+			});
+		</script>
+		{% endblock %}
+		{% endblock %}
+	</head>
+	<body>
+		{% block body %}{% endblock %}
+	</body>
+</html>

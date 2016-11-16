@@ -9,5 +9,21 @@ fgms_special_offers_auth:
         _controller: FgmsSpecialOffersBundle:Install:auth
 
 fgms_special_offers_homepage:
-    path:     /
+    path: /
     defaults: { _controller: FgmsSpecialOffersBundle:Default:index }
+
+fgms_special_offers_create:
+    path: /create
+    schemes:
+        -   https
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:create
+
+fgms_special_offers_edit:
+    path: /edit/{id}
+    schemes:
+        -   https
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:edit
+    requirements:
+        id: "\\d+"

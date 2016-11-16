@@ -1,1 +1,21 @@
-Hello World!
+{% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
+{% set title = 'Home' %}
+
+{% block shopify_behavior_settings %}
+{{parent()}}
+buttons: {
+	primary: [
+		{
+			label: 'Create Special Offer',
+			href: {{url('fgms_special_offers_create')|json_encode()|raw}}
+		}
+	]
+}
+{% endblock %}
+
+{% block body %}
+<h2>Active</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'active', offers: active} %}
+<h2>Pending</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'pending', offers: pending, link: true} %}
+{% endblock %}

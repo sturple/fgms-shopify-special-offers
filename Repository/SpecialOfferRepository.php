@@ -4,6 +4,14 @@ namespace Fgms\SpecialOffersBundle\Repository;
 
 class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
 {
+    private function addStore(\Doctrine\ORM\QueryBuilder $qb, \Fgms\SpecialOffersBundle\Entity\Store $store = null)
+    {
+        if (is_null($store)) return;
+        $qb->innerJoin('so.store','st')
+            ->andWhere($qb->expr()->eq('st.id',':stid'))
+            ->setParameter('stid',$store->getId());
+    }
+
     private function executeRangeQuery(\DateTime $to, \Fgms\SpecialOffersBundle\Entity\Store $store = null, $property, $status)
     {
         $qb = $this->createQueryBuilder('so');
@@ -11,11 +19,7 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
             ->setParameter('to',\Fgms\SpecialOffersBundle\Utility\DateTime::toDoctrine($to))
             ->andWhere($qb->expr()->eq('so.status',':status'))
             ->setParameter('status',$status);
-        if (!is_null($store)) {
-            $qb->innerJoin(\Fgms\SpecialOffersBundle\Entity\Store::class,'st')
-                ->andWhere($qb->expr()->eq('st.id',':stid'))
-                ->setParameter('stid',$store->getId());
-        }
+        $this->addStore($qb,$store);
         $q = $qb->getQuery();
         return $q->getResult();
     }
@@ -60,5 +64,26 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
     public function getEnding(\DateTime $to, \Fgms\SpecialOffersBundle\Entity\Store $store = null)
     {
         return $this->executeRangeQuery($to,$store,'end','active');
+    }
+
+    /**
+     * Obtains all SpecialOffer entities with a certain status.
+     *
+     * @param string $status
+     * @param Store|null $store
+     *  A Store entity representing the Shopify store.  Defaults to
+     *  null.  If null retrieves all SpecialOffer entities regardless
+     *  of store.
+     *
+     * @return array
+     */
+    public function getByStatus($status, \Fgms\SpecialOffersBundle\Entity\Store $store = null)
+    {
+        $qb = $this->createQueryBuilder('so');
+        $this->addStore($qb,$store);
+        $qb->andWhere($qb->expr()->eq('so.status',':status'))
+            ->setParameter('status',$status);
+        $q = $qb->getQuery();
+        return $q->getResult();
     }
 }

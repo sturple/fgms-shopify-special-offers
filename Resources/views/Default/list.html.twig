@@ -1,0 +1,42 @@
+{% if link is not defined %}
+{% set link = false %}
+{% endif %}
+{% if date_format is not defined %}
+{% set date_format = 'Y-m-d\\TH:i:sP' %}
+{% endif %}
+{% if offers is empty %}
+<p class="{{type|escape('html_attr')}}_offers no_offers">None</p>
+{% else %}
+<table class="{{type|escape('html_attr')}}_offers">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Discount</th>
+			<th>Start</th>
+			<th>End</th>
+			{% if link %}
+			<th></th>
+			{% endif %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for offer in offers %}
+		<tr>
+			<td>{{offer.saleTitle}}</td>
+			<td>
+				{% if offer.discountCents != null %}
+				${{'%.2f'|format(offer.discountCents / 100|round(2))}}
+				{% else %}
+				{{offer.discountPercent}}%
+				{% endif %}
+			</td>
+			<td>{{offer.start|date(date_format)}}</td>
+			<td>{{offer.end|date(date_format)}}</td>
+			{% if link %}
+			<td><a href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
+			{% endif %}
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
