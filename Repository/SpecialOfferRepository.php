@@ -12,6 +12,12 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
             ->setParameter('stid',$store->getId());
     }
 
+    private function addMax(\Doctrine\ORM\QueryBuilder $qb, $max = null)
+    {
+        if (is_null($max)) return;
+        $qb->setMaxResults($max);
+    }
+
     private function executeRangeQuery(\DateTime $to, \Fgms\SpecialOffersBundle\Entity\Store $store = null, $property, $status)
     {
         $qb = $this->createQueryBuilder('so');
@@ -69,20 +75,33 @@ class SpecialOfferRepository extends \Doctrine\ORM\EntityRepository
     /**
      * Obtains all SpecialOffer entities with a certain status.
      *
+     * If retrieving active entities they will be ordered by when
+     * they shall be applied with sooner coming first.  Otherwise
+     * they will be ordered by when they expire with sooner coming
+     * first.
+     *
      * @param string $status
      * @param Store|null $store
      *  A Store entity representing the Shopify store.  Defaults to
      *  null.  If null retrieves all SpecialOffer entities regardless
      *  of store.
+     * @param int|null $max
+     *  The maximum number of results to retrieve.  Defaults to null
+     *  in which case an unlimited number of results will be retrieved.
      *
      * @return array
      */
-    public function getByStatus($status, \Fgms\SpecialOffersBundle\Entity\Store $store = null)
+    public function getByStatus($status, \Fgms\SpecialOffersBundle\Entity\Store $store = null, $max = null)
     {
         $qb = $this->createQueryBuilder('so');
         $this->addStore($qb,$store);
+        $this->addMax($qb,$max);
         $qb->andWhere($qb->expr()->eq('so.status',':status'))
-            ->setParameter('status',$status);
+            ->setParameter('status',$status)
+            ->addOrderBy(
+                ($status === 'active') ? 'so.start' : 'so.end',
+                'DESC'
+            );
         $q = $qb->getQuery();
         return $q->getResult();
     }

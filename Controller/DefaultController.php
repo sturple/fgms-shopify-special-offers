@@ -43,9 +43,13 @@ class DefaultController extends BaseController
         $repo = $this->getSpecialOfferRepository();
         $pending = $repo->getByStatus('pending',$store);
         $active = $repo->getByStatus('active',$store);
+        $max = $this->getExpired();
+        $expired = $repo->getByStatus('expired',$store,$max);
         $ctx = $this->getContext($store,[
             'pending' => $pending,
             'active' => $active,
+            'expired' => $expired,
+            'max_expired' => $max,
             'timezone' => $this->getTimezone($store)
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig',$ctx);

@@ -31,6 +31,10 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('secret')
                     ->isRequired()
                 ->end()
+                ->integerNode('expired')
+                    ->min(1)
+                    ->defaultValue(10)
+                ->end()
             ->end();
 
         return $treeBuilder;

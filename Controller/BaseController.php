@@ -19,6 +19,11 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $this->getConfig()['secret'];
     }
 
+    protected function getExpired()
+    {
+        return $this->getConfig()['expired'];
+    }
+
     protected function getStoreRepository()
     {
         $doctrine = $this->getDoctrine();

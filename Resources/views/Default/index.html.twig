@@ -15,7 +15,9 @@ buttons: {
 
 {% block content %}
 <h2>Active</h2>
-{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'active', offers: active, timezone: timezone} %}
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'active', offers: active, timezone: timezone} only %}
 <h2>Pending</h2>
-{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'pending', offers: pending, link: true, timezone: timezone} %}
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'pending', offers: pending, timezone: timezone} only %}
+<h2>Expired (last {{max_expired}})</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'expired', offers: expired, timezone: timezone} only %}
 {% endblock %}
