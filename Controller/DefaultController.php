@@ -87,9 +87,14 @@ class DefaultController extends BaseController
         }
     }
 
-    private function fromForm(\Symfony\Component\Form\FormInterface $form, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer = null)
+    private function fromForm(\Symfony\Component\Form\FormInterface $form, $mixed)
     {
-        if (is_null($offer)) $offer = new \Fgms\SpecialOffersBundle\Entity\SpecialOffer();
+        if ($mixed instanceof \Fgms\SpecialOffersBundle\Entity\Store) {
+            $offer = new \Fgms\SpecialOffersBundle\Entity\SpecialOffer();
+            $offer->setStore($mixed);
+        } else {
+            $offer = $mixed;
+        }
         $data = $form->getData();
         $offer->setTitle($data['title'])
             ->setSubtitle($data['subtitle'])
@@ -143,7 +148,19 @@ class DefaultController extends BaseController
     public function createAction(\Symfony\Component\HttpFoundation\Request $request)
     {
         $store = $this->getCurrentStore($request);
-        $ctx = $this->getContext($store);
+        $tz = $this->getTimezone($store);
+        $form = $this->getForm($tz);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $offer = $this->fromForm($form,$store);
+            $em = $this->getEntityManager();
+            $em->persist($offer);
+            $em->flush();
+            return $this->redirectToRoute('fgms_special_offers_edit',['id' => $offer->getId()]);
+        }
+        $ctx = $this->getContext($store,[
+            'form' => $form->createView()
+        ]);
         return $this->render('FgmsSpecialOffersBundle:Default:create.html.twig',$ctx);
     }
 
