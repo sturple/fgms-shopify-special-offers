@@ -37,6 +37,91 @@ class DefaultController extends BaseController
         ],$curr);
     }
 
+    private function getForm(\DateTimeZone $tz, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer = null)
+    {
+        $fb = $this->createFormBuilder()
+            ->add('title',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
+            ->add('subtitle',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
+            ->add('start',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,['view_timezone' => $tz->getName()])
+            ->add('end',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,['view_timezone' => $tz->getName()])
+            ->add('summary',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
+            ->add('tags',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
+            ->add('variantIds',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
+            ->add('discountDollars',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
+            ->add('discountPercent',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
+            ->add('submit',\Symfony\Component\Form\Extension\Core\Type\SubmitType::class);
+        $retr = $fb->getForm();
+        if (!is_null($offer)) $retr->setData([
+            'title' => $offer->getTitle(),
+            'start' => $offer->getStart(),
+            'end' => $offer->getEnd(),
+            'summary' => $offer->getSummary(),
+            'tags' => implode(', ',$offer->getTags()),
+            'variantIds' => implode(', ',$offer->getVariantIds()),
+            'discountDollars' => sprintf(
+                '%.2f',
+                round(floatval($offer->getDiscountCents())/100.0,2)
+            ),
+            'discountPercent' => (string)$offer->getDiscountPercent()
+        ]);
+        return $retr;
+    }
+
+    private function toCents($str)
+    {
+        if (is_null($str)) return null;
+        try {
+            return \Fgms\SpecialOffersBundle\Utility\Convert::toCents($str);
+        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
+            throw $this->createBadRequestException('Unrecognized dollars format',$e);
+        }
+    }
+
+    private function toPercent($str)
+    {
+        if (is_null($str)) return null;
+        try {
+            return \Fgms\SpecialOffersBundle\Utility\Convert::toInteger($str);
+        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
+            throw $this->createBadRequestException('Unrecognized percent format',$e);
+        }
+    }
+
+    private function fromForm(\Symfony\Component\Form\FormInterface $form, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer = null)
+    {
+        if (is_null($offer)) $offer = new \Fgms\SpecialOffersBundle\Entity\SpecialOffer();
+        $data = $form->getData();
+        $offer->setTitle($data['title'])
+            ->setSubtitle($data['subtitle'])
+            ->setSummary($data['summary']);
+        $start = $data['start'];
+        $end = $data['end'];
+        if ($start->getTimestamp() > $end->getTimestamp()) throw $this->createBadRequestException('SpecialOffer ends before it begins');
+        $offer->setStart($start)
+            ->setEnd($end);
+        $pct = $this->toPercent($data['discountPercent']);
+        $cents = $this->toCents($data['discountDollars']);
+        if (is_null($pct) === is_null($cents)) throw $this->createBadRequestException('Both cents and percentage or neither');
+        if (is_null($pct)) {
+            $offer->setDiscountCents($cents)
+                ->setDiscountPercent(null);
+        } else {
+            $offer->setDiscountCents(null)
+                ->setDiscountPercent($pct);
+        }
+        $vids = preg_split('/,\\s*/u',$data['variantIds']);
+        try {
+            $vids = array_map(function ($str) { return \Fgms\SpecialOffersBundle\Utility\Convert::toInteger($str);  },$vids);
+        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
+            throw $this->createBadRequestException('Unrecognized variant ID format',$e);
+        }
+        $offer->setVariantIds($vids);
+        $tags = $data['tags'];
+        $tags = is_null($tags) ? [] : preg_split('/,\\s*/u',$tags);
+        $offer->setTags($tags);
+        return $offer;
+    }
+
     public function indexAction(\Symfony\Component\HttpFoundation\Request $request)
     {
         $store = $this->getCurrentStore($request);
@@ -83,8 +168,19 @@ class DefaultController extends BaseController
                 $status
             )
         );
+        $tz = $this->getTimezone($store);
+        $form = $this->getForm($tz,$offer);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $offer = $this->fromForm($form,$offer);
+            $em = $this->getEntityManager();
+            $em->persist($offer);
+            $em->flush();
+        }
         $ctx = $this->getContext($store,[
-            'offer' => $offer
+            'offer' => $offer,
+            'form' => $form->createView(),
+            'timezone' => $tz
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:edit.html.twig',$ctx);
     }

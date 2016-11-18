@@ -36,6 +36,12 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $doctrine->getRepository(\Fgms\SpecialOffersBundle\Entity\SpecialOffer::class);
     }
 
+    protected function getEntityManager()
+    {
+        $doctrine = $this->getDoctrine();
+        return $doctrine->getEntityManager();
+    }
+
     protected function getStoreAddress($mixed)
     {
         if (!($mixed instanceof \Symfony\Component\HttpFoundation\Request)) return $mixed;
