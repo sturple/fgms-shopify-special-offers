@@ -23,6 +23,11 @@ class SpecialOffer
     private $title;
 
     /**
+     * @ORM\Column(type="text",nullable=true)
+     */
+    private $subtitle;
+
+    /**
      * @ORM\Column(type="datetime")
      */
     private $start;
@@ -450,5 +455,29 @@ class SpecialOffer
     public function getStore()
     {
         return $this->store;
+    }
+
+    /**
+     * Set subtitle
+     *
+     * @param string $subtitle
+     *
+     * @return SpecialOffer
+     */
+    public function setSubtitle($subtitle)
+    {
+        $this->subtitle = $subtitle;
+
+        return $this;
+    }
+
+    /**
+     * Get subtitle
+     *
+     * @return string
+     */
+    public function getSubtitle()
+    {
+        return $this->subtitle;
     }
 }
