@@ -25,7 +25,7 @@
 	<tbody>
 		{% for offer in offers %}
 		<tr>
-			<td>{{offer.saleTitle}}</td>
+			<td>{{offer.title}}</td>
 			<td>
 				{% if offer.discountCents != null %}
 				${{'%.2f'|format(offer.discountCents / 100|round(2))}}

@@ -20,7 +20,7 @@ class SpecialOffer
     /**
      * @ORM\Column(type="text")
      */
-    private $saleTitle;
+    private $title;
 
     /**
      * @ORM\Column(type="datetime")
@@ -45,7 +45,7 @@ class SpecialOffer
     /**
      * @ORM\Column(type="text",nullable=true)
      */
-    private $saleSummary;
+    private $summary;
 
     /**
      * @ORM\Column(type="text")
@@ -98,27 +98,27 @@ class SpecialOffer
     }
 
     /**
-     * Set saleTitle
+     * Set title
      *
-     * @param string $saleTitle
+     * @param string $title
      *
      * @return SpecialOffer
      */
-    public function setSaleTitle($saleTitle)
+    public function setTitle($title)
     {
-        $this->saleTitle = $saleTitle;
+        $this->title = $title;
 
         return $this;
     }
 
     /**
-     * Get saleTitle
+     * Get title
      *
      * @return string
      */
-    public function getSaleTitle()
+    public function getTitle()
     {
-        return $this->saleTitle;
+        return $this->title;
     }
 
     /**
@@ -218,27 +218,27 @@ class SpecialOffer
     }
 
     /**
-     * Set saleSummary
+     * Set summary
      *
-     * @param string $saleSummary
+     * @param string $summary
      *
      * @return SpecialOffer
      */
-    public function setSaleSummary($saleSummary)
+    public function setSummary($summary)
     {
-        $this->saleSummary = $saleSummary;
+        $this->summary = $summary;
 
         return $this;
     }
 
     /**
-     * Get saleSummary
+     * Get summary
      *
      * @return string
      */
-    public function getSaleSummary()
+    public function getSummary()
     {
-        return $this->saleSummary;
+        return $this->summary;
     }
 
     /**
