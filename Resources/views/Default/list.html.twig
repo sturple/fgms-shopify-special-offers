@@ -1,6 +1,3 @@
-{% if link is not defined %}
-{% set link = false %}
-{% endif %}
 {% if timezone is not defined %}
 {% set timezone = 'UTC' %}
 {% endif %}
@@ -17,9 +14,7 @@
 			<th>Discount</th>
 			<th>Start</th>
 			<th>End</th>
-			{% if link %}
 			<th></th>
-			{% endif %}
 		</tr>
 	</thead>
 	<tbody>
@@ -35,9 +30,15 @@
 			</td>
 			<td>{{offer.start|date(date_format,timezone)}}</td>
 			<td>{{offer.end|date(date_format,timezone)}}</td>
-			{% if link %}
-			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
-			{% endif %}
+			<td>
+				{% if type == 'pending' %}
+				<a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a>
+				{% elseif type == 'active' %}
+				<a class="btn btn-primary" href="">Cancel</a>
+				{% else %}
+				<a class="btn btn-primary" href="{{url('fgms_special_offers_clone',{id: offer.id})|escape('html_attr')}}">Copy</a>
+				{% endif %}
+			</td>
 		</tr>
 		{% endfor %}
 	</tbody>

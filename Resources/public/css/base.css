@@ -9,7 +9,7 @@ h2, p {
 	padding-right: 10px;
 }
 
-table.active_offers > tbody > tr > td, table.pending_offers > tbody > tr > td {
+table.active_offers > tbody > tr > td, table.pending_offers > tbody > tr > td, table.expired_offers > tbody > tr > td {
 	line-height: 34px;
 	vertical-align: middle;
 }
