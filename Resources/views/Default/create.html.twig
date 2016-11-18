@@ -1,11 +1,2 @@
-{% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
+{% extends 'FgmsSpecialOffersBundle:Default:hasform.html.twig' %}
 {% set title = 'Create' %}
-
-{% block shopify_behavior_settings %}
-{{parent()}}
-{% include 'FgmsSpecialOffersBundle:Default:back.html.twig' only %}
-{% endblock %}
-
-{% block content %}
-{% include 'FgmsSpecialOffersBundle:Default:form.html.twig' with {form: form} only %}
-{% endblock %}
