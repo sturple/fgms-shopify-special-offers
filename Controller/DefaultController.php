@@ -145,28 +145,30 @@ class DefaultController extends BaseController
         return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig',$ctx);
     }
 
+    private function create(\Symfony\Component\Form\FormInterface $form, \Fgms\SpecialOffersBundle\Entity\Store $store)
+    {
+        $offer = $this->fromForm($form,$store);
+        $em = $this->getEntityManager();
+        $em->persist($offer);
+        $em->flush();
+        return $this->redirectToRoute('fgms_special_offers_edit',['id' => $offer->getId()]);
+    }
+
     public function createAction(\Symfony\Component\HttpFoundation\Request $request)
     {
         $store = $this->getCurrentStore($request);
         $tz = $this->getTimezone($store);
         $form = $this->getForm($tz);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $offer = $this->fromForm($form,$store);
-            $em = $this->getEntityManager();
-            $em->persist($offer);
-            $em->flush();
-            return $this->redirectToRoute('fgms_special_offers_edit',['id' => $offer->getId()]);
-        }
+        if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
         $ctx = $this->getContext($store,[
             'form' => $form->createView()
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:create.html.twig',$ctx);
     }
 
-    public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
+    private function getSpecialOfferById(\Fgms\SpecialOffersBundle\Entity\Store $store, $id)
     {
-        $store = $this->getCurrentStore($request);
         $id = intval($id);
         $repo = $this->getSpecialOfferRepository();
         $offer = $repo->getById($id,$store);
@@ -177,11 +179,33 @@ class DefaultController extends BaseController
                 $store->getId()
             )
         );
+        return $offer;
+    }
+
+    public function cloneAction(\Symfony\Component\HttpFoundation\Request $request, $id)
+    {
+        $store = $this->getCurrentStore($request);
+        $offer = $this->getSpecialOfferById($store,$id);
+        $tz = $this->getTimezone($store);
+        $form = $this->getForm($tz,$offer);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
+        $ctx = $this->getContext($store,[
+            'offer' => $offer,
+            'form' => $form->createView()
+        ]);
+        return $this->render('FgmsSpecialOffersBundle:Default:clone.html.twig',$ctx);
+    }
+
+    public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
+    {
+        $store = $this->getCurrentStore($request);
+        $offer = $this->getSpecialOfferById($store,$id);
         $status = $offer->getStatus();
         if ($status !== 'pending') throw $this->createNotFoundException(
             sprintf(
                 'SpecialOffer %d has non-pending status "%s"',
-                $id,
+                $offer->getId(),
                 $status
             )
         );

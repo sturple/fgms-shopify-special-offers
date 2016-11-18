@@ -23,3 +23,10 @@ fgms_special_offers_edit:
         _controller: FgmsSpecialOffersBundle:Default:edit
     requirements:
         id: "\\d+"
+
+fgms_special_offers_clone:
+    path: /clone/{id}
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:clone
+    requirements:
+        id: "\\d+"
