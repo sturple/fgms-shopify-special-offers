@@ -196,8 +196,7 @@ class DefaultController extends BaseController
         }
         $ctx = $this->getContext($store,[
             'offer' => $offer,
-            'form' => $form->createView(),
-            'timezone' => $tz
+            'form' => $form->createView()
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:edit.html.twig',$ctx);
     }
