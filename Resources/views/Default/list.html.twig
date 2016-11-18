@@ -2,7 +2,7 @@
 {% set link = false %}
 {% endif %}
 {% if date_format is not defined %}
-{% set date_format = 'Y-m-d\\TH:i:sP' %}
+{% set date_format = 'M j, Y g:i A' %}
 {% endif %}
 {% if offers is empty %}
 <p class="{{type|escape('html_attr')}}_offers no_offers">None</p>
