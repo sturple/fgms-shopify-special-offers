@@ -1,6 +1,9 @@
 {% if link is not defined %}
 {% set link = false %}
 {% endif %}
+{% if timezone is not defined %}
+{% set timezone = 'UTC' %}
+{% endif %}
 {% if date_format is not defined %}
 {% set date_format = 'M j, Y g:i A' %}
 {% endif %}
@@ -30,8 +33,8 @@
 				{{offer.discountPercent}}%
 				{% endif %}
 			</td>
-			<td>{{offer.start|date(date_format)}}</td>
-			<td>{{offer.end|date(date_format)}}</td>
+			<td>{{offer.start|date(date_format,timezone)}}</td>
+			<td>{{offer.end|date(date_format,timezone)}}</td>
 			{% if link %}
 			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
 			{% endif %}

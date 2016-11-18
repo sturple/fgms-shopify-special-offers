@@ -45,7 +45,8 @@ class DefaultController extends BaseController
         $active = $repo->getByStatus('active',$store);
         $ctx = $this->getContext($store,[
             'pending' => $pending,
-            'active' => $active
+            'active' => $active,
+            'timezone' => $this->getTimezone($store)
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig',$ctx);
     }

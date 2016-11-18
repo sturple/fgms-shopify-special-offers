@@ -72,6 +72,14 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $shopify;
     }
 
+    protected function getTimezone($mixed)
+    {
+        $shopify = $this->getShopify($mixed);
+        $shop = $shopify->call('GET','/admin/shop.json')->getObject('shop');
+        $iana = $shop->getString('iana_timezone');
+        return new \DateTimeZone($iana);
+    }
+
     protected function createBadRequestException($message = 'Bad Request', $previous = null)
     {
         return new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException($message,$previous);
