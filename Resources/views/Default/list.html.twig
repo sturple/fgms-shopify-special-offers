@@ -14,6 +14,12 @@
 			<th>Discount</th>
 			<th>Start</th>
 			<th>End</th>
+			{% if type == 'pending' %}
+			<th></th>
+			{% endif %}
+			{% if type == 'pending' or type == 'active' %}
+			<th></th>
+			{% endif %}
 			<th></th>
 		</tr>
 	</thead>
@@ -30,15 +36,13 @@
 			</td>
 			<td>{{offer.start|date(date_format,timezone)}}</td>
 			<td>{{offer.end|date(date_format,timezone)}}</td>
-			<td>
-				{% if type == 'pending' %}
-				<a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a>
-				{% elseif type == 'active' %}
-				<a class="btn btn-primary" href="">Cancel</a>
-				{% else %}
-				<a class="btn btn-primary" href="{{url('fgms_special_offers_clone',{id: offer.id})|escape('html_attr')}}">Copy</a>
-				{% endif %}
-			</td>
+			{% if type == 'pending' %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
+			{% endif %}
+			{% if type == 'pending' or type == 'active' %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_cancel',{id: offer.id})|escape('html_attr')}}">Cancel</a></td>
+			{% endif %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_clone',{id: offer.id})|escape('html_attr')}}">Copy</a></td>
 		</tr>
 		{% endfor %}
 	</tbody>

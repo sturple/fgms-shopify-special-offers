@@ -30,3 +30,10 @@ fgms_special_offers_clone:
         _controller: FgmsSpecialOffersBundle:Default:clone
     requirements:
         id: "\\d+"
+
+fgms_special_offers_cancel:
+    path: /cancel/{id}
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:cancel
+    requirements:
+        id: "\\d+"

@@ -224,4 +224,51 @@ class DefaultController extends BaseController
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:edit.html.twig',$ctx);
     }
+
+    private function cancelPending(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
+    {
+        $now = new \DateTime();
+        $offer->setReverted($now)
+            ->setApplied($now)
+            ->setStatus('expired');
+        $em = $this->getEntityManager();
+        $em->persist($offer);
+        $em->flush($offer);
+    }
+
+    private function cancelActive(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
+    {
+        $strat = new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->getShopify($offer->getStore()));
+        $em = $this->getEntityManager();
+        $changes = $strat->revert($offer);
+        foreach ($changes as $change) {
+            $offer->addPriceChange($change);
+            $em->persist($change);
+        }
+        $offer->setStatus('expired')
+            ->setReverted(new \DateTime());
+        $em->persist($offer);
+        $em->flush();
+        $dispatcher = $this->container->get('event_dispatcher');
+        $dispatcher->dispatch(
+            'specialoffers.started',
+            new \Fgms\SpecialOffersBundle\Event\PriceChangeEvent($offer,$changes)
+        );
+    }
+
+    public function cancelAction(\Symfony\Component\HttpFoundation\Request $request, $id)
+    {
+        $store = $this->getCurrentStore($request);
+        $offer = $this->getSpecialOfferById($store,$id);
+        $status = $offer->getStatus();
+        if ($status === 'pending') $this->cancelPending($offer);
+        else if ($status === 'active') $this->cancelActive($offer);
+        else throw $this->createNotFoundException(
+            sprintf(
+                'SpecialOffer %d is expired',
+                $offer->getId()
+            )
+        );
+        return $this->redirectToRoute('fgms_special_offers_homepage');
+    }
 }
