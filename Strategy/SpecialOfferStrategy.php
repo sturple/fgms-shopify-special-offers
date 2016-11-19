@@ -61,6 +61,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 
     private function tagsToArray($tags)
     {
+        if ($tags === '') return [];
         return preg_split('/,\s*/u',$tags);
     }
 

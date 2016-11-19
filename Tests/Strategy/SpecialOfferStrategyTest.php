@@ -312,6 +312,7 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(4,$change->getVariantId());
 		$this->assertSame(6000,$change->getBeforeCents());
 		$this->assertSame(8500,$change->getAfterCents());
+		$this->assertEmpty($change->getAfterTags());
 		$res = $this->shopify->getRequests();
 		$this->assertCount(4,$res);
 		$r = $res[0];
