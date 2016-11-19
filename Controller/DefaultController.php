@@ -197,18 +197,24 @@ class DefaultController extends BaseController
         return $this->render('FgmsSpecialOffersBundle:Default:clone.html.twig',$ctx);
     }
 
+    private function assertStatus(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer, $expected)
+    {
+        $status = $offer->getStatus();
+        if ($status !== $expected) throw $this->createNotFoundException(
+            sprintf(
+                'SpecialOffer %d has non-%s status "%s"',
+                $offer->getId(),
+                $expected,
+                $status
+            )
+        );
+    }
+
     public function editAction(\Symfony\Component\HttpFoundation\Request $request, $id)
     {
         $store = $this->getCurrentStore($request);
         $offer = $this->getSpecialOfferById($store,$id);
-        $status = $offer->getStatus();
-        if ($status !== 'pending') throw $this->createNotFoundException(
-            sprintf(
-                'SpecialOffer %d has non-pending status "%s"',
-                $offer->getId(),
-                $status
-            )
-        );
+        $this->assertStatus($offer,'pending');
         $tz = $this->getTimezone($store);
         $form = $this->getForm($tz,$offer);
         $form->handleRequest($request);
