@@ -39,7 +39,7 @@ class CronCommand extends \Symfony\Bundle\FrameworkBundle\Command\ContainerAware
     private function getShopify(\Fgms\SpecialOffersBundle\Entity\Store $store)
     {
         $config = $this->getContainer()->getParameter('fgms_special_offers.config');
-        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient($config['api_key'],$config['secret'],$store->getName());
+        $shopify = new \Fgms\SpecialOffersBundle\Shopify\Client($config['api_key'],$config['secret'],$store->getName());
         $shopify->setToken($store->getAccessToken());
         return $shopify;
     }

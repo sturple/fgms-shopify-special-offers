@@ -10,7 +10,7 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 
 	protected function setUp()
 	{
-		$this->shopify = new \Fgms\SpecialOffersBundle\Utility\MockShopifyClient();
+		$this->shopify = new \Fgms\SpecialOffersBundle\Shopify\MockClient();
 		$this->strategy = new \Fgms\SpecialOffersBundle\Strategy\SpecialOfferStrategy($this->shopify);
 		$this->offer = new \Fgms\SpecialOffersBundle\Entity\SpecialOffer();
 		//	Just to avoid insanity

@@ -1,16 +1,16 @@
 <?php
 
-namespace Fgms\SpecialOffersBundle\Utility;
+namespace Fgms\SpecialOffersBundle\Shopify;
 
-class MockShopifyClient implements ShopifyInterface
+class MockClient implements ClientInterface
 {
     private $requests = [];
     private $responses = [];
 
     public function addResponse($obj)
     {
-        $json = Json::encode($obj);
-        $this->responses[] = ShopifyObject::create($json);
+        $json = \Fgms\SpecialOffersBundle\Utility\Json::encode($obj);
+        $this->responses[] = ObjectWrapper::create($json);
     }
 
     public function getRequests()

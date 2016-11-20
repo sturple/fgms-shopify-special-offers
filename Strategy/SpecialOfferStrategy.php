@@ -10,7 +10,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 {
     private $shopify;
 
-    public function __construct(\Fgms\SpecialOffersBundle\Utility\ShopifyInterface $shopify)
+    public function __construct(\Fgms\SpecialOffersBundle\Shopify\ClientInterface $shopify)
     {
         $this->shopify = $shopify;
     }

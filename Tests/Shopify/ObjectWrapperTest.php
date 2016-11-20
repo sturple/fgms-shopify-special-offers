@@ -1,17 +1,17 @@
 <?php
 
-namespace Fgms\SpecialOffersBundle\Tests\Utility;
+namespace Fgms\SpecialOffersBundle\Tests\Shopify;
 
-class ShopifyObjectTest extends \PHPUnit_Framework_TestCase
+class ObjectWrapperTest extends \PHPUnit_Framework_TestCase
 {
     private function expectThrows()
     {
-        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ShopifyException::class);
+        $this->expectException(\Fgms\SpecialOffersBundle\Shopify\Exception\Exception::class);
     }
 
     private function create($str = '{}')
     {
-        return \Fgms\SpecialOffersBundle\Utility\ShopifyObject::create($str);
+        return \Fgms\SpecialOffersBundle\Shopify\ObjectWrapper::create($str);
     }
 
     public function testDecode()
@@ -72,7 +72,7 @@ class ShopifyObjectTest extends \PHPUnit_Framework_TestCase
     {
         $obj = $this->create('{"test":{"foo":"bar"}}');
         $o = $obj->getObject('test');
-        $this->assertInstanceOf(\Fgms\SpecialOffersBundle\Utility\ShopifyObject::class,$o);
+        $this->assertInstanceOf(\Fgms\SpecialOffersBundle\Shopify\ObjectWrapper::class,$o);
         $this->assertSame('bar',$o->getString('foo'));
     }
 
@@ -94,7 +94,7 @@ class ShopifyObjectTest extends \PHPUnit_Framework_TestCase
     {
         $obj = $this->create('{"test":{"foo":"bar"}}');
         $o = $obj->getOptionalObject('test');
-        $this->assertInstanceOf(\Fgms\SpecialOffersBundle\Utility\ShopifyObject::class,$o);
+        $this->assertInstanceOf(\Fgms\SpecialOffersBundle\Shopify\ObjectWrapper::class,$o);
         $this->assertSame('bar',$o->getString('foo'));
     }
 

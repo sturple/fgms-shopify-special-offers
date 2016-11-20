@@ -74,7 +74,7 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
             $name = $this->getStoreName($mixed);
             $store = $this->getStore($mixed);
         }
-        $shopify = new \Fgms\SpecialOffersBundle\Utility\ShopifyClient(
+        $shopify = new \Fgms\SpecialOffersBundle\Shopify\Client(
             $this->getApiKey(),
             $this->getSecret(),
             $name

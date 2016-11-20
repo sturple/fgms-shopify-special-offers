@@ -1,11 +1,11 @@
 <?php
 
-namespace Fgms\SpecialOffersBundle\Utility;
+namespace Fgms\SpecialOffersBundle\Shopify;
 
 /**
  * Allows interaction with the Shopify API via HTTP.
  */
-class ShopifyClient implements ShopifyInterface
+class Client implements ClientInterface
 {
     private $api_key;
     private $secret;
@@ -14,7 +14,7 @@ class ShopifyClient implements ShopifyInterface
     private $token = null;
 
     /**
-     * Creates a new ShopifyClient.
+     * Creates a new Client.
      *
      * @param string $api_key
      * @param string $secret
@@ -49,7 +49,7 @@ class ShopifyClient implements ShopifyInterface
      *
      * @param string code
      *
-     * @return ShopifyObject
+     * @return Object
      */
     public function getToken($code)
     {
@@ -57,7 +57,7 @@ class ShopifyClient implements ShopifyInterface
             'POST',
             $this->getUrl('/admin/oauth/access_token'),
             ['Content-Type' => 'application/json;charset=utf-8'],
-            Json::encode([
+            \Fgms\SpecialOffersBundle\Utility\Json::encode([
                 'client_id' => $this->api_key,
                 'client_secret' => $this->secret,
                 'code' => $code
@@ -116,7 +116,7 @@ class ShopifyClient implements ShopifyInterface
             $method,
             $this->getUrl($endpoint),
             ['Content-Type' => 'application/json;charset=utf-8'],
-            Json::encode($args)
+            \Fgms\SpecialOffersBundle\Utility\Json::encode($args)
         );
     }
 
@@ -136,7 +136,7 @@ class ShopifyClient implements ShopifyInterface
 
     private function decodeResponse(\Psr\Http\Message\ResponseInterface $response)
     {
-        return ShopifyObject::create($response->getBody());
+        return ObjectWrapper::create($response->getBody());
     }
 
     private function raiseError(\GuzzleHttp\Exception\BadResponseException $e)
@@ -144,7 +144,7 @@ class ShopifyClient implements ShopifyInterface
         if (!$e->hasResponse()) throw new \LogicException('BadResponseException with no Response',0,$e);
         $response = $e->getResponse();
         $obj = $this->decodeResponse($response);
-        throw new \Fgms\SpecialOffersBundle\Exception\ShopifyException(
+        throw new Exception\ClientException(
             $obj->getString('errors'),
             0,
             $e

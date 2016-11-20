@@ -1,13 +1,13 @@
 <?php
 
-namespace Fgms\SpecialOffersBundle\Utility;
+namespace Fgms\SpecialOffersBundle\Shopify;
 
 /**
  * An interface which may be implemented to provide
  * a channel through which to interact with the Shopify
  * API.
  */
-interface ShopifyInterface
+interface ClientInterface
 {
     /**
      * Invokes the Shopify REST API.
@@ -16,7 +16,7 @@ interface ShopifyInterface
      * @param string $endpoint
      * @param array $args
      *
-     * @return ShopifyObject
+     * @return Object
      */
     public function call($method, $endpoint, array $args = []);
 }
