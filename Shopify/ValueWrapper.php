@@ -57,10 +57,19 @@ abstract class ValueWrapper
      */
     protected abstract function getOptional($key);
 
-    private function wrap($key, $value)
+    /**
+     * Wraps a value in an ObjectWrapper or ArrayWrapper,
+     * or returns it unmodified as appropriate.
+     *
+     * @param string|int $key
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    protected function wrap($key, $value)
     {
         if (is_object($value)) return new ObjectWrapper($value,$this->json,$this->join($key));
-        //  TODO: Array wrapper
+        if (is_array($value)) return new ArrayWrapper($value,$this->json,$this->join($key));
         return $value;
     }
 
