@@ -37,16 +37,28 @@ class DefaultController extends BaseController
         ],$curr);
     }
 
-    private function getForm(\DateTimeZone $tz, \Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer = null)
+    private function getForm(\DateTimeZone $tz, $mixed)
     {
+        if ($mixed instanceof \Fgms\SpecialOffersBundle\Entity\SpecialOffer) {
+            $offer = $mixed;
+            $store = $offer->getStore();
+        } else {
+            $offer = null;
+            $store = $mixed;
+        }
+        $dt_options = [
+            'view_timezone' => $tz->getName(),
+            'widget' => 'single_text'
+        ];
+        $products = $this->getAllProducts($store,['id','title','variants']);
         $fb = $this->createFormBuilder()
             ->add('title',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
             ->add('subtitle',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
-            ->add('start',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,['view_timezone' => $tz->getName()])
-            ->add('end',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,['view_timezone' => $tz->getName()])
+            ->add('start',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
+            ->add('end',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
             ->add('summary',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('tags',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
-            ->add('variantIds',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
+            ->add('variantIds',\Fgms\SpecialOffersBundle\Form\Type\VariantsType::class,['products' => $products,'label' => 'Variants'])
             ->add('discountDollars',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('discountPercent',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('submit',\Symfony\Component\Form\Extension\Core\Type\SubmitType::class);
@@ -57,7 +69,7 @@ class DefaultController extends BaseController
             'end' => $offer->getEnd(),
             'summary' => $offer->getSummary(),
             'tags' => implode(', ',$offer->getTags()),
-            'variantIds' => implode(', ',$offer->getVariantIds()),
+            'variantIds' => $offer->getVariantIds(),
             'discountDollars' => sprintf(
                 '%.2f',
                 round(floatval($offer->getDiscountCents())/100.0,2)
@@ -114,17 +126,32 @@ class DefaultController extends BaseController
             $offer->setDiscountCents(null)
                 ->setDiscountPercent($pct);
         }
-        $vids = preg_split('/,\\s*/u',$data['variantIds']);
-        try {
-            $vids = array_map(function ($str) { return \Fgms\SpecialOffersBundle\Utility\Convert::toInteger($str);  },$vids);
-        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
-            throw $this->createBadRequestException('Unrecognized variant ID format',$e);
-        }
+        $vids = $data['variantIds'];
         $offer->setVariantIds($vids);
         $tags = $data['tags'];
         $tags = is_null($tags) ? [] : preg_split('/,\\s*/u',$tags);
         $offer->setTags($tags);
         return $offer;
+    }
+
+    private function getAllProducts(\Fgms\SpecialOffersBundle\Entity\Store $store, array $fields = null)
+    {
+        $shopify = $this->getShopify($store);
+        $count = $shopify->call('GET','/admin/products/count.json')->getInteger('count');
+        $products = [];
+        $page = 1;
+        //  This is the maximum according to the Shopify API documentation:
+        //
+        //  https://help.shopify.com/api/reference/product#index
+        $args = ['limit' => 250];
+        if (!is_null($fields)) $args['fields'] = implode(',',$fields);
+        do {
+            $args['page'] = $page;
+            $curr = $shopify->call('GET','/admin/products.json',$args)->getArray('products');
+            foreach ($curr as $product) $products[] = $product;
+            ++$page;
+        } while (count($products) !== $count);
+        return $products;
     }
 
     private function getFormContext(\Symfony\Component\Form\FormInterface $form, \Fgms\SpecialOffersBundle\Entity\Store $store, array $args = [])
@@ -166,7 +193,7 @@ class DefaultController extends BaseController
     {
         $store = $this->getCurrentStore($request);
         $tz = $this->getTimezone($store);
-        $form = $this->getForm($tz);
+        $form = $this->getForm($tz,$store);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
         $ctx = $this->getFormContext($form,$store);

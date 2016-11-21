@@ -1,5 +1,15 @@
 {% extends 'FgmsSpecialOffersBundle:Default:hasback.html.twig' %}
 
+{% block css %}
+{{parent()}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+{% endblock %}
+
+{% block js %}
+{{parent()}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+{% endblock %}
+
 {% block content %}
 {% include 'FgmsSpecialOffersBundle:Default:form.html.twig' with {form: form} only %}
 {% endblock %}
