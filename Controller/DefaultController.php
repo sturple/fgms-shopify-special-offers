@@ -57,7 +57,7 @@ class DefaultController extends BaseController
             ->add('start',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
             ->add('end',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
             ->add('summary',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
-            ->add('tags',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
+            ->add('tags',\Fgms\SpecialOffersBundle\Form\Type\TagsType::class,['required' => false])
             ->add('variantIds',\Fgms\SpecialOffersBundle\Form\Type\VariantsType::class,['products' => $products,'label' => 'Variants'])
             ->add('discountDollars',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('discountPercent',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
@@ -68,7 +68,7 @@ class DefaultController extends BaseController
             'start' => $offer->getStart(),
             'end' => $offer->getEnd(),
             'summary' => $offer->getSummary(),
-            'tags' => implode(', ',$offer->getTags()),
+            'tags' => $offer->getTags(),
             'variantIds' => $offer->getVariantIds(),
             'discountDollars' => sprintf(
                 '%.2f',
@@ -129,7 +129,6 @@ class DefaultController extends BaseController
         $vids = $data['variantIds'];
         $offer->setVariantIds($vids);
         $tags = $data['tags'];
-        $tags = is_null($tags) ? [] : preg_split('/,\\s*/u',$tags);
         $offer->setTags($tags);
         return $offer;
     }

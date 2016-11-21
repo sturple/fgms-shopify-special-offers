@@ -6,22 +6,17 @@ class VariantsType extends \Symfony\Component\Form\AbstractType implements \Symf
 {
     public function buildForm(\Symfony\Component\Form\FormBuilderInterface $fb, array $options)
     {
-        $fb->addViewTransformer($this);
+        $fb->addViewTransformer($this,true);
     }
 
     public function transform($data)
     {
-        if (is_null($data)) return '';
-        return implode(',',$data);
+        return $data;
     }
 
     public function reverseTransform($data)
     {
-        if (!is_string($data)) return [];
-        $data = trim($data);
-        if ($data === '') return [];
-        $arr = preg_split('/,\\s*/u',$data);
-        return array_map(function ($str) {  return intval($str);    },$arr);
+        return array_map(function ($str) {  return intval($str);    },$data);
     }
 
     public function buildView(\Symfony\Component\Form\FormView $view, \Symfony\Component\Form\FormInterface $form, array $options)
@@ -64,7 +59,7 @@ class VariantsType extends \Symfony\Component\Form\AbstractType implements \Symf
 
     public function getParent()
     {
-        return \Symfony\Component\Form\Extension\Core\Type\TextType::class;
+        return TagsType::class;
     }
 
     public function getBlockPrefix()
