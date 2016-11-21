@@ -127,6 +127,14 @@ class DefaultController extends BaseController
         return $offer;
     }
 
+    private function getFormContext(\Symfony\Component\Form\FormInterface $form, \Fgms\SpecialOffersBundle\Entity\Store $store, array $args = [])
+    {
+        $ctx = $this->getContext($store,[
+            'form' => $form->createView()
+        ]);
+        return array_merge($ctx,$args);
+    }
+
     public function indexAction(\Symfony\Component\HttpFoundation\Request $request)
     {
         $store = $this->getCurrentStore($request);
@@ -161,9 +169,7 @@ class DefaultController extends BaseController
         $form = $this->getForm($tz);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
-        $ctx = $this->getContext($store,[
-            'form' => $form->createView()
-        ]);
+        $ctx = $this->getFormContext($form,$store);
         return $this->render('FgmsSpecialOffersBundle:Default:create.html.twig',$ctx);
     }
 
@@ -190,9 +196,8 @@ class DefaultController extends BaseController
         $form = $this->getForm($tz,$offer);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
-        $ctx = $this->getContext($store,[
-            'offer' => $offer,
-            'form' => $form->createView()
+        $ctx = $this->getFormContext($form,$store,[
+            'offer' => $offer
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:clone.html.twig',$ctx);
     }
@@ -224,9 +229,8 @@ class DefaultController extends BaseController
             $em->persist($offer);
             $em->flush();
         }
-        $ctx = $this->getContext($store,[
-            'offer' => $offer,
-            'form' => $form->createView()
+        $ctx = $this->getFormContext($form,$store,[
+            'offer' => $offer
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:edit.html.twig',$ctx);
     }
