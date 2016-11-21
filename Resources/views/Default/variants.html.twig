@@ -18,10 +18,10 @@
 						id: {{variant.id|json_encode()|raw}},
 						text: {{variant.title|json_encode()|raw}},
 						icon: false
-					}
+					},
 					{% endfor %}
 				]
-			}
+			},
 			{% endfor %}
 		];
 		tree.jstree({
