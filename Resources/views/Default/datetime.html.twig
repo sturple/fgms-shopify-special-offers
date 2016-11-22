@@ -1,0 +1,17 @@
+{% block datetime_widget %}
+<div class="input-group date">
+	<input type="text" class="form-control" value="{{value|escape('html_attr')}}" id="{{id|escape('html_attr')}}" name="{{full_name|escape('html_attr')}}">
+	<span class="input-group-addon">
+		<span class="glyphicon glyphicon-calendar"></span>
+	</span>
+</div>
+<script type="text/javascript">
+	$(function () {
+		var div = $('#' + {{id|json_encode()|raw}}).parent();
+		div.datetimepicker({
+			'format': 'DD/MM/YYYY h:mm A'
+		});
+		div.next('script').remove();
+	});
+</script>
+{% endblock %}

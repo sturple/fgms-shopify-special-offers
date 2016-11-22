@@ -48,7 +48,8 @@ class DefaultController extends BaseController
         }
         $dt_options = [
             'view_timezone' => $tz->getName(),
-            'widget' => 'single_text'
+            'widget' => 'single_text',
+            'format' => 'dd/MM/yyyy h:mm a'
         ];
         $products = $this->getAllProducts($store,['id','title','variants']);
         $fb = $this->createFormBuilder()
