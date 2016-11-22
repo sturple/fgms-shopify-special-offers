@@ -1,0 +1,54 @@
+{% block fgms_special_offers_variants_widget %}
+<input type="hidden" id="{{id|escape('html_attr')}}" name="{{full_name|escape('html_attr')}}" value="{{value|escape('html_attr')}}">
+<div></div>
+<script type="text/javascript">
+	$(function () {
+		var hidden = $('#' + {{id|json_encode()|raw}});
+		var tree = hidden.next('div');
+		tree.next('script').remove();
+		var nodes = [
+			{% for product in products %}
+			{
+				id: {{product.id|json_encode()|raw}},
+				text: {{product.title|json_encode()|raw}},
+				icon: false,
+				children: [
+					{% for variant in product.variants %}
+					{
+						id: {{variant.id|json_encode()|raw}},
+						text: {{variant.title|json_encode()|raw}},
+						icon: false
+					},
+					{% endfor %}
+				]
+			},
+			{% endfor %}
+		];
+		tree.jstree({
+			plugins: ['checkbox'],
+			core: {
+				data: nodes,
+				multiple: true
+			}
+		});
+		var update = function (e, data) {
+			var selected = tree.jstree('get_selected',true);
+			var str = selected.reduce(function (carry, item) {
+				if (item.children.length !== 0) return carry;
+				if (carry !== '') carry += ',';
+				carry += item.id;
+				return carry;
+			},'');
+			hidden.val(str);
+		};
+		tree.on('select_node.jstree',update).on('deselect_node.jstree',update);
+		var initial = hidden.val();
+		if (initial !== '') tree.on('ready.jstree',function () {
+			var split = initial.split(',');
+			split.forEach(function (id) {
+				tree.jstree('select_node',id.trim());
+			});
+		});
+	});
+</script>
+{% endblock %}

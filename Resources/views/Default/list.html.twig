@@ -1,0 +1,50 @@
+{% if timezone is not defined %}
+{% set timezone = 'UTC' %}
+{% endif %}
+{% if date_format is not defined %}
+{% set date_format = 'M j, Y g:i A' %}
+{% endif %}
+{% if offers is empty %}
+<p class="{{type|escape('html_attr')}}_offers no_offers">None</p>
+{% else %}
+<table class="{{type|escape('html_attr')}}_offers table">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Discount</th>
+			<th>Start</th>
+			<th>End</th>
+			{% if type == 'pending' %}
+			<th></th>
+			{% endif %}
+			{% if type == 'pending' or type == 'active' %}
+			<th></th>
+			{% endif %}
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for offer in offers %}
+		<tr>
+			<td>{{offer.title}}</td>
+			<td>
+				{% if offer.discountCents != null %}
+				${{'%.2f'|format(offer.discountCents / 100|round(2))}}
+				{% else %}
+				{{offer.discountPercent}}%
+				{% endif %}
+			</td>
+			<td>{{offer.start|date(date_format,timezone)}}</td>
+			<td>{{offer.end|date(date_format,timezone)}}</td>
+			{% if type == 'pending' %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_edit',{id: offer.id})|escape('html_attr')}}">Edit</a></td>
+			{% endif %}
+			{% if type == 'pending' or type == 'active' %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_cancel',{id: offer.id})|escape('html_attr')}}">Cancel</a></td>
+			{% endif %}
+			<td><a class="btn btn-primary" href="{{url('fgms_special_offers_clone',{id: offer.id})|escape('html_attr')}}">Copy</a></td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}

@@ -12,17 +12,15 @@
         },
         {
             "name": "Robert Leahy",
-            "email": "rleahy@rleahy.ca"          
+            "email": "rleahy@rleahy.ca"
         }
     ],
     "require": {
-      
+        "guzzlehttp/guzzle": "^6.2"
     },
     "minimum-stability": "dev",
     "target-dir": "Fgms/SpecialOffersBundle",
     "autoload" : {
         "psr-0" : {"Fgms\\SpecialOffersBundle" : ""}
     }
-
-
 }

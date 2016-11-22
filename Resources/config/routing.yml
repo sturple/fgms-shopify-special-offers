@@ -1,15 +1,39 @@
+fgms_special_offers_install:
+    path: /install
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Install:install
+
+fgms_special_offers_auth:
+    path: /auth
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Install:auth
+
 fgms_special_offers_homepage:
-    path:     /
+    path: /
     defaults: { _controller: FgmsSpecialOffersBundle:Default:index }
-    
-fgms_special_offers_oauth:
-    path:     /oauth
-    defaults: { _controller: FgmsSpecialOffersBundle:Default:oauth }
-    
-fgms_special_offers_help:
-    path:     /help
-    defaults: { _controller: FgmsSpecialOffersBundle:Default:help }
- 
-fgms_special_offers_preferences:
-    path:     /preferences
-    defaults: { _controller: FgmsSpecialOffersBundle:Default:preferences }
+
+fgms_special_offers_create:
+    path: /create
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:create
+
+fgms_special_offers_edit:
+    path: /edit/{id}
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:edit
+    requirements:
+        id: "\\d+"
+
+fgms_special_offers_clone:
+    path: /clone/{id}
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:clone
+    requirements:
+        id: "\\d+"
+
+fgms_special_offers_cancel:
+    path: /cancel/{id}
+    defaults:
+        _controller: FgmsSpecialOffersBundle:Default:cancel
+    requirements:
+        id: "\\d+"

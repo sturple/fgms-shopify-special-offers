@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'FgmsShopifyEmbedBundle::base.html.twig' %}
 {% block javascripts %}{{parent()}}{% endblock %}
 
@@ -20,3 +21,28 @@
 {% endblock %}
 
 {% block stylesheets %}{{parent()}}{% endblock %}
+=======
+{% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
+{% set title = 'Home' %}
+
+{% block shopify_behavior_settings %}
+{{parent()}}
+buttons: {
+	primary: [
+		{
+			label: 'Create Special Offer',
+			href: {{url('fgms_special_offers_create')|json_encode()|raw}}
+		}
+	]
+}
+{% endblock %}
+
+{% block content %}
+<h2>Active</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'active', offers: active, timezone: timezone} only %}
+<h2>Pending</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'pending', offers: pending, timezone: timezone} only %}
+<h2>Expired (last {{max_expired}})</h2>
+{% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'expired', offers: expired, timezone: timezone} only %}
+{% endblock %}
+>>>>>>> rleahy_ui

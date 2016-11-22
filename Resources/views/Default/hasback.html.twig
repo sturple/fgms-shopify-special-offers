@@ -1,0 +1,6 @@
+{% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
+
+{% block shopify_behavior_settings %}
+{{parent()}}
+{% include 'FgmsSpecialOffersBundle:Default:back.html.twig' only %}
+{% endblock %}
