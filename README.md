@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-# Shopify Embed Bundle
-=======
 # Shopify Special Offers Bundle (Embed)
->>>>>>> rleahy_ui
 
 ## Installation
 
@@ -11,11 +7,7 @@
 ```json
 {
    "require": {
-<<<<<<< HEAD
-       "sturpe/fgms-shopify-special-offers": "dev-master"
-=======
        "sturple/fgms-shopify-special-offers": "dev-master"
->>>>>>> rleahy_ui
    }
 }
 
@@ -30,11 +22,7 @@ $ composer update
 
 ## Configuration
 
-<<<<<<< HEAD
-**Add to ```app/AppKernal.php``` file**
-=======
 **Add to ```app/AppKernel.php``` file**
->>>>>>> rleahy_ui
 
 ```php
 
@@ -47,13 +35,6 @@ class AppKernel extends Kernel
              new Fgms\SpecialOffersBundle\FgmsSpecialOffersBundle();
         ]
     }
-<<<<<<< HEAD
-}            
-
-```
-
-
-=======
 }
 
 ```
@@ -68,4 +49,3 @@ echo PHP_INT_SIZE;
 ```
 
 If `8` is printed you're running 64 bit PHP.
->>>>>>> rleahy_ui

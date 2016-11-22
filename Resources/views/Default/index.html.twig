@@ -1,27 +1,3 @@
-<<<<<<< HEAD
-{% extends 'FgmsShopifyEmbedBundle::base.html.twig' %}
-{% block javascripts %}{{parent()}}{% endblock %}
-
-{% block buttonsSecondary %}
-   { label: "Manage Products", href: "/shopify/products/", target: "app" },
-   { label: "Manage Forms", href: "/shopify/forms/", target: "app" }
-{% endblock %}
-
-{% block body %}
-<div class="container">              
-  <div class="row">
-    <div class="col-md-12">                    
-      <h1>{{page.title}}</h1> 
-      {{dump()}}
-      {% if page.content is defined %}{{page.content | raw}}{% endif %}
-      
-    </div>                
-  </div>
-</div>		
-{% endblock %}
-
-{% block stylesheets %}{{parent()}}{% endblock %}
-=======
 {% extends 'FgmsSpecialOffersBundle:Default:base.html.twig' %}
 {% set title = 'Home' %}
 
@@ -45,4 +21,3 @@ buttons: {
 <h2>Expired (last {{max_expired}})</h2>
 {% include 'FgmsSpecialOffersBundle:Default:list.html.twig' with {type: 'expired', offers: expired, timezone: timezone} only %}
 {% endblock %}
->>>>>>> rleahy_ui
