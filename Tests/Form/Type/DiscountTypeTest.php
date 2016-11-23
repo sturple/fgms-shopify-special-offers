@@ -22,14 +22,25 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('$',$result['type']);
     }
 
-    public function testTransformPercent()
+    public function testTransformPercentNoDecimal()
     {
         $result = $this->type->transform([
-            'percent' => 80,
+            'percent' => 80.0,
             'cents' => null
         ]);
         $this->assertCount(2,$result);
         $this->assertSame('80',$result['value']);
+        $this->assertSame('%',$result['type']);
+    }
+
+    public function testTransformPercentDecimal()
+    {
+        $result = $this->type->transform([
+            'percent' => 80.5,
+            'cents' => null
+        ]);
+        $this->assertCount(2,$result);
+        $this->assertSame('80.5',$result['value']);
         $this->assertSame('%',$result['type']);
     }
 
@@ -76,6 +87,6 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->assertCount(2,$result);
         $this->assertNull($result['cents']);
-        $this->assertSame(90,$result['percent']);
+        $this->assertSame(90.0,$result['percent']);
     }
 }

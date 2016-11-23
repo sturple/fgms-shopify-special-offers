@@ -52,4 +52,16 @@ class ConvertTest extends \PHPUnit_Framework_TestCase
         $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
         \Fgms\SpecialOffersBundle\Utility\Convert::toCents('foo');
     }
+
+    public function testToFloatSuccess()
+    {
+        $this->assertSame(5.5,\Fgms\SpecialOffersBundle\Utility\Convert::toFloat('5.5'));
+        $this->assertSame(5.0,\Fgms\SpecialOffersBundle\Utility\Convert::toFloat('5'));
+    }
+
+    public function testToFloatFailure()
+    {
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        \Fgms\SpecialOffersBundle\Utility\Convert::toFloat('aoeu');
+    }
 }

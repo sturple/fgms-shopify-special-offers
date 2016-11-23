@@ -65,4 +65,23 @@ class Convert
             self::raiseCents($str,$e);
         }
     }
+
+    /**
+     * Attempts to losslessly convert a string
+     * to a floating point value.
+     *
+     * @param string $str
+     *
+     * @return float
+     */
+    public static function toFloat($str)
+    {
+        if (!is_numeric($str)) self::raise(
+            sprintf(
+                '"%s" cannot be losslessly converted to a floating point value',
+                $str
+            )
+        );
+        return floatval($str);
+    }
 }

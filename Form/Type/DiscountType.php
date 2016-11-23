@@ -19,10 +19,10 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
         if ($is_percent === $is_cents) throw new \LogicException('Both percent and cents, or neither');
         if ($is_percent) {
             $percent = $data['percent'];
-            if (!is_integer($percent)) throw new \LogicException('Percent non-integer');
+            if (!is_float($percent)) throw new \LogicException('Percent not float');
             return [
                 'type' => '%',
-                'value' => (string)$percent
+                'value' => (string)round($percent,1)
             ];
         }
         $cents = $data['cents'];
@@ -40,7 +40,7 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
         if ($type === '%') {
             return [
                 'cents' => null,
-                'percent' => \Fgms\SpecialOffersBundle\Utility\Convert::toInteger($value)
+                'percent' => \Fgms\SpecialOffersBundle\Utility\Convert::toFloat($value)
             ];
         }
         if ($type === '$') {
