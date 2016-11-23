@@ -7,9 +7,15 @@
 </div>
 <script type="text/javascript">
 	$(function () {
-		var div = $('#' + {{id|json_encode()|raw}}).parent();
+		var input = $('#' + {{id|json_encode()|raw}});
+		var div = input.parent();
 		div.datetimepicker({
 			'format': 'DD/MM/YYYY h:mm A'
+		});
+		input.focus(function () {
+			div.data('DateTimePicker').show();
+		}).blur(function () {
+			div.data('DateTimePicker').hide();
 		});
 		div.next('script').remove();
 	});
