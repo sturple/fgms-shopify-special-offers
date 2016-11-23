@@ -4,6 +4,8 @@ namespace Fgms\SpecialOffersBundle\Controller;
 
 abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller\Controller
 {
+    private $shop = null;
+
     protected function getConfig()
     {
         return $this->container->getParameter('fgms_special_offers.config');
@@ -83,12 +85,28 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
         return $shopify;
     }
 
+    protected function getStoreInformation($mixed)
+    {
+        if (is_null($this->shop)) {
+            $shopify = $this->getShopify($mixed);
+            $result = $shopify->call('GET','/admin/shop.json');
+            $this->shop = $result->getObject('shop');
+        }
+        return $this->shop;
+    }
+
     protected function getTimezone($mixed)
     {
-        $shopify = $this->getShopify($mixed);
-        $shop = $shopify->call('GET','/admin/shop.json')->getObject('shop');
+        $shop = $this->getStoreInformation($mixed);
         $iana = $shop->getString('iana_timezone');
         return new \DateTimeZone($iana);
+    }
+
+    protected function getMoneyWithCurrencyFormat($mixed)
+    {
+        $shop = $this->getStoreInformation($mixed);
+        $fmt = $shop->getString('money_with_currency_format');
+        return $fmt;
     }
 
     protected function createBadRequestException($message = 'Bad Request', $previous = null)

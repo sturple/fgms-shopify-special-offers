@@ -37,7 +37,7 @@ class DefaultController extends BaseController
         ],$curr);
     }
 
-    private function getForm(\DateTimeZone $tz, $mixed)
+    private function getForm($mixed)
     {
         if ($mixed instanceof \Fgms\SpecialOffersBundle\Entity\SpecialOffer) {
             $offer = $mixed;
@@ -47,7 +47,7 @@ class DefaultController extends BaseController
             $store = $mixed;
         }
         $dt_options = [
-            'view_timezone' => $tz->getName(),
+            'view_timezone' => $this->getTimezone($store)->getName(),
             'widget' => 'single_text',
             'format' => 'dd/MM/yyyy h:mm a'
         ];
@@ -60,8 +60,7 @@ class DefaultController extends BaseController
             ->add('summary',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('tags',\Fgms\SpecialOffersBundle\Form\Type\TagsType::class,['required' => false])
             ->add('variantIds',\Fgms\SpecialOffersBundle\Form\Type\VariantsType::class,['products' => $products,'label' => 'Variants'])
-            ->add('discountDollars',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
-            ->add('discountPercent',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
+            ->add('discount',\Fgms\SpecialOffersBundle\Form\Type\DiscountType::class,['money_with_currency_format' => $this->getMoneyWithCurrencyFormat($store)])
             ->add('submit',\Symfony\Component\Form\Extension\Core\Type\SubmitType::class);
         $retr = $fb->getForm();
         if (!is_null($offer)) $retr->setData([
@@ -71,11 +70,10 @@ class DefaultController extends BaseController
             'summary' => $offer->getSummary(),
             'tags' => $offer->getTags(),
             'variantIds' => $offer->getVariantIds(),
-            'discountDollars' => sprintf(
-                '%.2f',
-                round(floatval($offer->getDiscountCents())/100.0,2)
-            ),
-            'discountPercent' => (string)$offer->getDiscountPercent()
+            'discount' => [
+                'percent' => $offer->getDiscountPercent(),
+                'cents' => $offer->getDiscountCents()
+            ]
         ]);
         return $retr;
     }
@@ -117,16 +115,9 @@ class DefaultController extends BaseController
         if ($start->getTimestamp() > $end->getTimestamp()) throw $this->createBadRequestException('SpecialOffer ends before it begins');
         $offer->setStart($start)
             ->setEnd($end);
-        $pct = $this->toPercent($data['discountPercent']);
-        $cents = $this->toCents($data['discountDollars']);
-        if (is_null($pct) === is_null($cents)) throw $this->createBadRequestException('Both cents and percentage or neither');
-        if (is_null($pct)) {
-            $offer->setDiscountCents($cents)
-                ->setDiscountPercent(null);
-        } else {
-            $offer->setDiscountCents(null)
-                ->setDiscountPercent($pct);
-        }
+        $discount = $data['discount'];
+        $offer->setDiscountCents($discount['cents'])
+            ->setDiscountPercent($discount['percent']);
         $vids = $data['variantIds'];
         $offer->setVariantIds($vids);
         $tags = $data['tags'];
@@ -192,8 +183,7 @@ class DefaultController extends BaseController
     public function createAction(\Symfony\Component\HttpFoundation\Request $request)
     {
         $store = $this->getCurrentStore($request);
-        $tz = $this->getTimezone($store);
-        $form = $this->getForm($tz,$store);
+        $form = $this->getForm($store);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
         $ctx = $this->getFormContext($form,$store);
@@ -219,8 +209,7 @@ class DefaultController extends BaseController
     {
         $store = $this->getCurrentStore($request);
         $offer = $this->getSpecialOfferById($store,$id);
-        $tz = $this->getTimezone($store);
-        $form = $this->getForm($tz,$offer);
+        $form = $this->getForm($offer);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) return $this->create($form,$store);
         $ctx = $this->getFormContext($form,$store,[
@@ -247,8 +236,7 @@ class DefaultController extends BaseController
         $store = $this->getCurrentStore($request);
         $offer = $this->getSpecialOfferById($store,$id);
         $this->assertStatus($offer,'pending');
-        $tz = $this->getTimezone($store);
-        $form = $this->getForm($tz,$offer);
+        $form = $this->getForm($offer);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $offer = $this->fromForm($form,$offer);
