@@ -17,12 +17,22 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 
     private function getVariant($id)
     {
-        return $this->shopify->call('GET',sprintf('/admin/variants/%d.json',$id))->getObject('variant');
+        $result = $this->shopify->call(
+            'GET',
+            sprintf('/admin/variants/%d.json',$id),
+            ['fields' => 'id,product_id,compare_at_price,price']
+        );
+        return $result->getObject('variant');
     }
 
     private function getProduct($id)
     {
-        return $this->shopify->call('GET',sprintf('/admin/products/%d.json',$id))->getObject('product');
+        $result = $this->shopify->call(
+            'GET',
+            sprintf('/admin/products/%d.json',$id),
+            ['fields' => 'id,tags']
+        );
+        return $result->getObject('product');
     }
 
     private function getVariants(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
