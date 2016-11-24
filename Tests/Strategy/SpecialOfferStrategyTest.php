@@ -121,6 +121,67 @@ class SpecialOfferStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame('',$p['tags']);
 	}
 
+	public function testApplyPercent()
+	{
+		$this->offer->setDiscountCents(null);
+		$this->offer->setDiscountPercent(50);
+		$this->shopify->addResponse([
+			'variant' => [
+				'id' => 4,
+				'product_id' => 1,
+				'compare_at_price' => null,
+				'price' => '8.00'
+			]
+		]);
+		$this->shopify->addResponse([
+			'product' => [
+				'id' => 1,
+				'tags' => ''
+			]
+		]);
+		//	For when it actually tries to change the price
+		$this->shopify->addResponse(new \stdClass());
+		$this->shopify->addResponse(new \stdClass());
+		$this->offer->setVariantIds([4]);
+		$arr = $this->apply(1);
+		$change = $arr[0];
+		$this->assertSame(4,$change->getVariantId());
+		$this->assertSame(800,$change->getBeforeCents());
+		$this->assertSame(400,$change->getAfterCents());
+		$res = $this->shopify->getRequests();
+		$this->assertCount(4,$res);
+		$r = $res[0];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertCount(1,$r->args);
+		$this->assertSame('id,product_id,compare_at_price,price',$r->args['fields']);
+		$r = $res[1];
+		$this->assertSame('GET',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertCount(1,$r->args);
+		$this->assertSame('id,tags',$r->args['fields']);
+		$r = $res[2];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/variants/4.json',$r->endpoint);
+		$this->assertArrayHasKey('variant',$r->args);
+		$v = $r->args['variant'];
+		$this->assertArrayHasKey('id',$v);
+		$this->assertSame(4,$v['id']);
+		$this->assertArrayHasKey('compare_at_price',$v);
+		$this->assertSame('8.00',$v['compare_at_price']);
+		$this->assertArrayHasKey('price',$v);
+		$this->assertSame('4.00',$v['price']);
+		$r = $res[3];
+		$this->assertSame('PUT',$r->method);
+		$this->assertSame('/admin/products/1.json',$r->endpoint);
+		$this->assertArrayHasKey('product',$r->args);
+		$p = $r->args['product'];
+		$this->assertArrayHasKey('id',$p);
+		$this->assertSame(1,$p['id']);
+		$this->assertArrayHasKey('tags',$p);
+		$this->assertSame('',$p['tags']);
+	}
+
 	public function testApplyZero()
 	{
 		$this->shopify->addResponse([

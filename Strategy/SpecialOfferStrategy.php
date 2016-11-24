@@ -166,7 +166,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 ->setSpecialOffer($offer)
                 ->setVariantId($vid)
                 ->setBeforeCents($price);
-            if (is_null($dc)) $pc->setAfterCents(intval($price * $dp));
+            if (is_null($dc)) $pc->setAfterCents(intval($price * (1.0 - ($dp / 100.0))));
             else $pc->setAfterCents($price - $dc);
             if ($pc->getAfterCents() < 0) throw new \LogicException(
                 sprintf(
