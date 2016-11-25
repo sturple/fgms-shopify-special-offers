@@ -121,13 +121,26 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
             $retr[] = $change;
             $vid = $change->getVariantId();
             $pid = $obj->product->getInteger('id');
-            $compare_at = ($change->getType() === 'revert') ? null : $this->toPrice($change->getBeforeCents());
-            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
-                'variant' => [
-                    'id' => $vid,
-                    'price' => $this->toPrice($change->getAfterCents()),
-                    'compare_at_price' => $compare_at
+            $revert = $change->getType() === 'revert';
+            $compare_at = $revert ? null : $this->toPrice($change->getBeforeCents());
+            $variant = [
+                'id' => $vid,
+                'price' => $this->toPrice($change->getAfterCents()),
+                'compare_at_price' => $compare_at
+            ];
+            $offer = $change->getSpecialOffer();
+            $meta_key = sprintf('offer_%d',$offer->getId());
+            //  Add metafield on apply
+            if (!$revert) $variant['metafields'] = [
+                [
+                    'key' => $meta_key,
+                    'namespace' => 'fgms_special_offers',
+                    'value_type' => 'string',
+                    'value' => 'Hello world!'
                 ]
+            ];
+            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
+                'variant' => $variant
             ]);
             $this->shopify->call('PUT',sprintf('/admin/products/%d.json',$pid),[
                 'product' => [
@@ -135,6 +148,17 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                     'tags' => $this->arrayToTags($change->getAfterTags())
                 ]
             ]);
+            //  Remove metafield on revert
+            if ($revert) {
+                $metafields = $this->shopify->call('GET',sprintf('/admin/variants/%d/metafields.json',$vid),[
+                    'fields' => 'id',
+                    'key' => $meta_key
+                ])->getArray('metafields');
+                foreach ($metafields as $metafield) {
+                    $mid = $metafield->getInteger('id');
+                    $this->shopify->call('DELETE',sprintf('/admin/variants/%d/metafields/%d.json',$vid,$mid));
+                }
+            }
         }
         return $retr;
     }
