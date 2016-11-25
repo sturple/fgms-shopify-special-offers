@@ -21,7 +21,12 @@ class FgmsSpecialOffersExtension extends Extension
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
+        //  This allows us to inject only the relevant config into
+        //  the EmailNotificationListener, which makes it more testable
+        $notifications = $config['notifications'];
+        unset($config['notifications']);
         $container->setParameter('fgms_special_offers.config',$config);
+        $container->setParameter('fgms_special_offers.notifications_config',$notifications);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
