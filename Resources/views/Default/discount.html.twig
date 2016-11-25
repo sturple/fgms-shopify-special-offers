@@ -5,7 +5,7 @@
 		<option value="%" {% if value.type|default('') == '%' %}selected{% endif %}>% Discount</option>
 	</select>
 	take
-	<input type="text" id="{{id|escape('html_attr')}}" name="{{full_name|escape('html_attr')}}[value]" value="{{value.value|default('')}}" class="form-control">
+	<input type="text" id="{{id|escape('html_attr')}}" name="{{full_name|escape('html_attr')}}[value]" value="{{value.value|default('')}}" class="form-control" required>
 	off
 </div>
 {% endblock %}
