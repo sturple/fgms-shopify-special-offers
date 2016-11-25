@@ -79,6 +79,15 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(800,$result['cents']);
     }
 
+    public function testReverseTransformNegativeCents()
+    {
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->type->reverseTransform([
+            'type' => '$',
+            'value' => '-2'
+        ]);
+    }
+
     public function testReverseTransformPercent()
     {
         $result = $this->type->reverseTransform([
@@ -88,5 +97,23 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(2,$result);
         $this->assertNull($result['cents']);
         $this->assertSame(90.0,$result['percent']);
+    }
+
+    public function testReverseTransformNegativePercent()
+    {
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->type->reverseTransform([
+            'type' => '%',
+            'value' => '-1'
+        ]);
+    }
+
+    public function testReverseTransformUnrecognizedType()
+    {
+        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->type->reverseTransform([
+            'type' => 'foo',
+            'value' => '2'
+        ]);
     }
 }

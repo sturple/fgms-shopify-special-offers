@@ -33,23 +33,32 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
         ];
     }
 
+    private function raise($msg)
+    {
+        throw new \Fgms\SpecialOffersBundle\Exception\ConvertException($msg);
+    }
+
     public function reverseTransform($data)
     {
         $type = $data['type'];
         $value = $data['value'];
         if ($type === '%') {
-            return [
+            $retr = [
                 'cents' => null,
                 'percent' => \Fgms\SpecialOffersBundle\Utility\Convert::toFloat($value)
             ];
+            if ($retr['percent'] < 0) $this->raise('Percentage discount negative');
+            return $retr;
         }
         if ($type === '$') {
-            return [
+            $retr = [
                 'percent' => null,
                 'cents' => \Fgms\SpecialOffersBundle\Utility\Convert::toCents($value)
             ];
+            if ($retr['cents'] < 0) $this->raise('Cents discount negative');
+            return $retr;
         }
-        throw new \LogicException('Unrecognized type');
+        $this->raise('Unrecognized type');
     }
 
     public function buildView(\Symfony\Component\Form\FormView $view, \Symfony\Component\Form\FormInterface $form, array $options)
