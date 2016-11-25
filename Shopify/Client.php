@@ -71,7 +71,7 @@ class Client implements ClientInterface
     private function getUrl($endpoint)
     {
         return sprintf(
-            'https://%s.myshopify.com/%s',
+            'https://%s.myshopify.com/%s.json',
             $this->store_name,
             preg_replace('/^\\//u','',$endpoint)
         );

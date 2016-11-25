@@ -19,7 +19,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
     {
         $result = $this->shopify->call(
             'GET',
-            sprintf('/admin/variants/%d.json',$id),
+            sprintf('/admin/variants/%d',$id),
             ['fields' => 'id,product_id,compare_at_price,price']
         );
         return $result->getObject('variant');
@@ -29,7 +29,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
     {
         $result = $this->shopify->call(
             'GET',
-            sprintf('/admin/products/%d.json',$id),
+            sprintf('/admin/products/%d',$id),
             ['fields' => 'id,tags']
         );
         return $result->getObject('product');
@@ -139,10 +139,10 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                     'value' => 'Hello world!'
                 ]
             ];
-            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
+            $this->shopify->call('PUT',sprintf('/admin/variants/%d',$vid),[
                 'variant' => $variant
             ]);
-            $this->shopify->call('PUT',sprintf('/admin/products/%d.json',$pid),[
+            $this->shopify->call('PUT',sprintf('/admin/products/%d',$pid),[
                 'product' => [
                     'id' => $pid,
                     'tags' => $this->arrayToTags($change->getAfterTags())
@@ -150,13 +150,13 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
             ]);
             //  Remove metafield on revert
             if ($revert) {
-                $metafields = $this->shopify->call('GET',sprintf('/admin/variants/%d/metafields.json',$vid),[
+                $metafields = $this->shopify->call('GET',sprintf('/admin/variants/%d/metafields',$vid),[
                     'fields' => 'id',
                     'key' => $meta_key
                 ])->getArray('metafields');
                 foreach ($metafields as $metafield) {
                     $mid = $metafield->getInteger('id');
-                    $this->shopify->call('DELETE',sprintf('/admin/variants/%d/metafields/%d.json',$vid,$mid));
+                    $this->shopify->call('DELETE',sprintf('/admin/variants/%d/metafields/%d',$vid,$mid));
                 }
             }
         }

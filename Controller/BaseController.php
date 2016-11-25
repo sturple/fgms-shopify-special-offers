@@ -89,7 +89,7 @@ abstract class BaseController extends \Symfony\Bundle\FrameworkBundle\Controller
     {
         if (is_null($this->shop)) {
             $shopify = $this->getShopify($mixed);
-            $result = $shopify->call('GET','/admin/shop.json');
+            $result = $shopify->call('GET','/admin/shop');
             $this->shop = $result->getObject('shop');
         }
         return $this->shop;

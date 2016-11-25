@@ -134,7 +134,7 @@ class DefaultController extends BaseController
     private function getAllProducts(\Fgms\SpecialOffersBundle\Entity\Store $store, array $fields = null)
     {
         $shopify = $this->getShopify($store);
-        $count = $shopify->call('GET','/admin/products/count.json')->getInteger('count');
+        $count = $shopify->call('GET','/admin/products/count')->getInteger('count');
         $products = [];
         $page = 1;
         //  This is the maximum according to the Shopify API documentation:
@@ -144,7 +144,7 @@ class DefaultController extends BaseController
         if (!is_null($fields)) $args['fields'] = implode(',',$fields);
         do {
             $args['page'] = $page;
-            $curr = $shopify->call('GET','/admin/products.json',$args)->getArray('products');
+            $curr = $shopify->call('GET','/admin/products',$args)->getArray('products');
             foreach ($curr as $product) $products[] = $product;
             ++$page;
         } while (count($products) !== $count);
