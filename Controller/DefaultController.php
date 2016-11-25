@@ -172,7 +172,8 @@ class DefaultController extends BaseController
             'active' => $active,
             'expired' => $expired,
             'max_expired' => $max,
-            'timezone' => $this->getTimezone($store)
+            'timezone' => $this->getTimezone($store),
+            'money_with_currency_format' => $this->getMoneyWithCurrencyFormat($store)
         ]);
         return $this->render('FgmsSpecialOffersBundle:Default:index.html.twig',$ctx);
     }

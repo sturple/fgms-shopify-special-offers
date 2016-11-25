@@ -29,7 +29,7 @@
 			<td>{{offer.title}}</td>
 			<td>
 				{% if offer.discountCents != null %}
-				${{'%.2f'|format(offer.discountCents / 100|round(2))}}
+				{{money_with_currency_format|replace({'{{amount}}': '%.2f'|format(offer.discountCents / 100|round(2))})}}
 				{% else %}
 				{{offer.discountPercent}}%
 				{% endif %}
