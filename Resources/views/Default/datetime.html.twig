@@ -10,13 +10,40 @@
 		var input = $('#' + {{id|json_encode()|raw}});
 		var div = input.parent();
 		div.datetimepicker({
-			'format': 'DD/MM/YYYY h:mm A'
+			format: 'DD/MM/YYYY h:mm A',
+			{% if linked is defined %}
+			{% if not first %}
+			useCurrent: false
+			{% endif %}
+			{% endif %}
 		});
 		input.focus(function () {
 			div.data('DateTimePicker').show();
 		}).blur(function () {
 			div.data('DateTimePicker').hide();
 		});
+		{% if linked is defined %}
+		var other = $('#form_' + {{linked|json_encode()|raw}}).parent();
+		{% if not first %}
+		other.on('dp.change',function (e) {
+			div.data('DateTimePicker').minDate(e.date);
+		});
+		div.on('dp.change',function (e) {
+			other.data('DateTimePicker').maxDate(e.date);
+		});
+		{% endif %}
+		var other_dt = other.data('DateTimePicker');
+		if (other_dt) {
+			var curr_dt = div.data('DateTimePicker');
+			{% if first %}
+			other_dt.minDate(curr_dt.date());
+			curr_dt.maxDate(other_dt.date());
+			{% else %}
+			other_dt.maxDate(curr_dt.date());
+			curr_dt.minDate(other_dt.date());
+			{% endif %}
+		}
+		{% endif %}
 		div.next('script').remove();
 	});
 </script>

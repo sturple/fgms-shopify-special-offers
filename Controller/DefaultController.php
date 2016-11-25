@@ -55,8 +55,14 @@ class DefaultController extends BaseController
         $fb = $this->createFormBuilder()
             ->add('title',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
             ->add('subtitle',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false])
-            ->add('start',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
-            ->add('end',\Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,$dt_options)
+            ->add('start',\Fgms\SpecialOffersBundle\Form\Type\LinkedDateTimeType::class,array_merge($dt_options,[
+                'linked' => 'end',
+                'first' => true
+            ]))
+            ->add('end',\Fgms\SpecialOffersBundle\Form\Type\LinkedDateTimeType::class,array_merge($dt_options,[
+                'linked' => 'start',
+                'first' => false
+            ]))
             ->add('summary',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => false,'empty_data' => null])
             ->add('tags',\Fgms\SpecialOffersBundle\Form\Type\TagsType::class,['required' => false])
             ->add('variantIds',\Fgms\SpecialOffersBundle\Form\Type\VariantsType::class,['products' => $products,'label' => 'Variants'])
