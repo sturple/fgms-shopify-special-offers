@@ -46,25 +46,25 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testTransformBoth()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->transform(['percent' => 80,'cents' => 800]);
     }
 
     public function testTransformNeither()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->transform(['percent' => null,'cents' => null]);
     }
 
     public function testTransformBadCents()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->transform(['cents' => 'foo','percent' => null]);
     }
 
     public function testTransformBadPercent()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->transform(['percent' => 'bar','cents' => null]);
     }
 
@@ -81,7 +81,7 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testReverseTransformNegativeCents()
     {
-        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->reverseTransform([
             'type' => '$',
             'value' => '-2'
@@ -101,7 +101,7 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testReverseTransformNegativePercent()
     {
-        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->reverseTransform([
             'type' => '%',
             'value' => '-1'
@@ -110,7 +110,7 @@ class DiscountTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testReverseTransformUnrecognizedType()
     {
-        $this->expectException(\Fgms\SpecialOffersBundle\Exception\ConvertException::class);
+        $this->expectException(\Symfony\Component\Form\Exception\TransformationFailedException::class);
         $this->type->reverseTransform([
             'type' => 'foo',
             'value' => '2'

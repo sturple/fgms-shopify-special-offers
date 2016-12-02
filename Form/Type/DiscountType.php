@@ -7,8 +7,13 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
     public function buildForm(\Symfony\Component\Form\FormBuilderInterface $fb, array $options)
     {
         $fb->addViewTransformer($this)
-            ->add('type',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true])
+            ->add('type',\Symfony\Component\Form\Extension\Core\Type\TextType::class)
             ->add('value',\Symfony\Component\Form\Extension\Core\Type\TextType::class,['required' => true]);
+    }
+
+    private function raise($msg, $e = null)
+    {
+        throw new \Symfony\Component\Form\Exception\TransformationFailedException($msg,0,$e);
     }
 
     public function transform($data)
@@ -16,26 +21,21 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
         if (!is_array($data)) return [];
         $is_percent = isset($data['percent']);
         $is_cents = isset($data['cents']);
-        if ($is_percent === $is_cents) throw new \LogicException('Both percent and cents, or neither');
+        if ($is_percent === $is_cents) $this->raise('Both percent and cents, or neither');
         if ($is_percent) {
             $percent = $data['percent'];
-            if (!is_float($percent)) throw new \LogicException('Percent not float');
+            if (!is_float($percent)) $this->raise('Percent not float');
             return [
                 'type' => '%',
                 'value' => (string)round($percent,1)
             ];
         }
         $cents = $data['cents'];
-        if (!is_integer($cents)) throw new \LogicException('Cents non-integer');
+        if (!is_integer($cents)) $this->raise('Cents non-integer');
         return [
             'type' => '$',
             'value' => sprintf('%.2f',round(floatval($cents) / 100.0,2))
         ];
-    }
-
-    private function raise($msg)
-    {
-        throw new \Fgms\SpecialOffersBundle\Exception\ConvertException($msg);
     }
 
     public function reverseTransform($data)
@@ -43,20 +43,28 @@ class DiscountType extends \Symfony\Component\Form\AbstractType implements \Symf
         $type = $data['type'];
         $value = $data['value'];
         if ($type === '%') {
-            $retr = [
+            try {
+                $p = \Fgms\SpecialOffersBundle\Utility\Convert::toFloat($value);
+            } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
+                $this->raise($e->getMessage(),$e);
+            }
+            if ($p < 0) $this->raise('Percentage discount negative');
+            return [
                 'cents' => null,
-                'percent' => \Fgms\SpecialOffersBundle\Utility\Convert::toFloat($value)
+                'percent' => $p
             ];
-            if ($retr['percent'] < 0) $this->raise('Percentage discount negative');
-            return $retr;
         }
         if ($type === '$') {
-            $retr = [
+            try {
+                $cs = \Fgms\SpecialOffersBundle\Utility\Convert::toCents($value);
+            } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
+                $this->raise($e->getMessage(),$e);
+            }
+            if ($cs < 0) $this->raise('Cents discount negative');
+            return [
                 'percent' => null,
-                'cents' => \Fgms\SpecialOffersBundle\Utility\Convert::toCents($value)
+                'cents' => $cs
             ];
-            if ($retr['cents'] < 0) $this->raise('Cents discount negative');
-            return $retr;
         }
         $this->raise('Unrecognized type');
     }
