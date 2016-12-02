@@ -129,16 +129,37 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 'compare_at_price' => $compare_at
             ];
             $offer = $change->getSpecialOffer();
-            $meta_key = sprintf('offer_%d',$offer->getId());
             //  Add metafield on apply
-            if (!$revert) $variant['metafields'] = [
-                [
-                    'key' => $meta_key,
-                    'namespace' => 'fgms_special_offers',
-                    'value_type' => 'string',
-                    'value' => 'Hello world!'
-                ]
-            ];
+            if (!$revert) {
+                $metafield = ['namespace' => 'fgms_special_offers'];
+                $variant['metafields'] = [
+                    array_merge($metafield,[
+                        'key' => 'title',
+                        'value' => $offer->getTitle(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'subtitle',
+                        'value' => (string)$offer->getSubtitle(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'summary',
+                        'value' => (string)$offer->getSummary(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'start',
+                        'value' => intval($offer->getStart()->format('U')) * 1000,
+                        'value_type' => 'integer'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'end',
+                        'value' => intval($offer->getEnd()->format('U')) * 1000,
+                        'value_type' => 'integer'
+                    ])
+                ];
+            }
             $this->shopify->call('PUT',sprintf('/admin/variants/%d',$vid),[
                 'variant' => $variant
             ]);
@@ -152,7 +173,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
             if ($revert) {
                 $metafields = $this->shopify->call('GET',sprintf('/admin/variants/%d/metafields',$vid),[
                     'fields' => 'id',
-                    'key' => $meta_key
+                    'namespace' => 'fgms_special_offers'
                 ])->getArray('metafields');
                 foreach ($metafields as $metafield) {
                     $mid = $metafield->getInteger('id');
