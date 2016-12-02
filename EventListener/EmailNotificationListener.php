@@ -38,29 +38,47 @@ class EmailNotificationListener
         return $retr;
     }
 
-    private function getMessage()
+    private function getMimeType($template)
     {
-        $msg = new \Swift_Message(null,null,'text/plain','UTF-8');
-        $msg->setFrom($this->getFrom());
-        $msg->setTo($this->getTo());
+        if (preg_match('/\\.html\\.twig$/u',$template)) return 'text/html';
+        return 'text/plain';
+    }
+
+    private function getMessage($subject, $template, array $ctx)
+    {
+        $body = $this->twig->render($template,$ctx);
+        $mime = $this->getMimeType($template);
+        $msg = new \Swift_Message($subject,$body,$mime,'UTF-8');
+        $msg->setFrom($this->getFrom())
+            ->setTo($this->getTo());
         return $msg;
+    }
+
+    private function getContext(\Fgms\SpecialOffersBundle\Event\PriceChangeEvent $event)
+    {
+        return [
+            'changes' => $event->getPriceChanges(),
+            'offer' => $event->getSpecialOffer()
+        ];
     }
 
     public function onStart(\Fgms\SpecialOffersBundle\Event\PriceChangeEvent $event)
     {
         if (!$this->isEnabled()) return;
-        $msg = $this->getMessage();
-        $msg->setSubject('Started');
-        $msg->setBody('Special offer started');
+        $offer = $event->getSpecialOffer();
+        $subject = sprintf('Special Offer %s Started',$offer->getTitle());
+        $ctx = $this->getContext($event);
+        $msg = $this->getMessage($subject,$this->config['start_template'],$ctx);
         $this->swift->send($msg);
     }
 
     public function onEnd(\Fgms\SpecialOffersBundle\Event\PriceChangeEvent $event)
     {
         if (!$this->isEnabled()) return;
-        $msg = $this->getMessage();
-        $msg->setSubject('Ended');
-        $msg->setBody('Special offer ended');
+        $offer = $event->getSpecialOffer();
+        $subject = sprintf('Special Offer %s Ended',$offer->getTitle());
+        $ctx = $this->getContext($event);
+        $msg = $this->getMessage($subject,$this->config['end_template'],$ctx);
         $this->swift->send($msg);
     }
 }

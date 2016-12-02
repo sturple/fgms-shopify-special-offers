@@ -62,6 +62,12 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
+                        ->scalarNode('start_template')
+                            ->isRequired()
+                        ->end()
+                        ->scalarNode('end_template')
+                            ->isRequired()
+                        ->end()
                     ->end()
                 ->end()
             ->end();
