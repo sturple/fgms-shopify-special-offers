@@ -84,26 +84,6 @@ class DefaultController extends BaseController
         return $retr;
     }
 
-    private function toCents($str)
-    {
-        if (is_null($str)) return null;
-        try {
-            return \Fgms\SpecialOffersBundle\Utility\Convert::toCents($str);
-        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
-            throw $this->createBadRequestException('Unrecognized dollars format',$e);
-        }
-    }
-
-    private function toPercent($str)
-    {
-        if (is_null($str)) return null;
-        try {
-            return \Fgms\SpecialOffersBundle\Utility\Convert::toInteger($str);
-        } catch (\Fgms\SpecialOffersBundle\Exception\ConvertException $e) {
-            throw $this->createBadRequestException('Unrecognized percent format',$e);
-        }
-    }
-
     private function fromForm(\Symfony\Component\Form\FormInterface $form, $mixed)
     {
         if ($mixed instanceof \Fgms\SpecialOffersBundle\Entity\Store) {
