@@ -1,5 +1,14 @@
-{% form_theme form with ['bootstrap_3_layout.html.twig','FgmsSpecialOffersBundle:Default:variants.html.twig'] %}
+{% form_theme form with ['bootstrap_3_layout.html.twig','FgmsSpecialOffersBundle:Default:variants.html.twig','FgmsSpecialOffersBundle:Default:datetime.html.twig','FgmsSpecialOffersBundle:Default:discount.html.twig'] %}
 
 {{form_start(form)}}
-{{form_widget(form)}}
+	{{form_errors(form)}}
+	{{form_row(form.title)}}
+	{{form_row(form.subtitle)}}
+	{{form_row(form.start)}}
+	{{form_row(form.end)}}
+	{{form_row(form.summary)}}
+	{{form_row(form.tags)}}
+	{{form_row(form.variantIds)}}
+	{{form_row(form.discount)}}
+	{{form_row(form.submit,{attr: {class: 'btn-primary'}})}}
 {{form_end(form)}}

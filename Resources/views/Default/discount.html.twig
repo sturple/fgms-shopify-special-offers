@@ -1,0 +1,40 @@
+{% block fgms_special_offers_discount_widget %}
+<div class="discount-widget">
+	{{form_errors(form.type)}}
+	{{form_errors(form.value)}}
+	<select name="{{full_name|escape('html_attr')}}[type]" class="form-control" id="{{id|escape('html_attr')}}_type">
+		<option value="$">{{cents_label}}</option>
+		<option value="%" {% if value.type|default('') == '%' %}selected{% endif %}>% Discount</option>
+	</select>
+	take
+	<input type="text" id="{{id|escape('html_attr')}}" name="{{full_name|escape('html_attr')}}[value]" value="{{value.value|default('')}}" class="form-control" required>
+	off
+</div>
+<script type="text/javascript">
+	$(function () {
+		var value = $('#' + {{id|json_encode()|raw}});
+		var type = $('#' + {{(id ~ '_type')|json_encode()|raw}});
+		var validate = function () {
+			var msg = '';
+			if (type.val() === '%') {
+				var pct = parseFloat(value.val());
+				if (isNaN(pct)) {
+					msg = 'Please enter a number';
+				} else if (pct < 0) {
+					msg = 'Please enter a positive number';
+				} else if (pct > 100) {
+					msg = 'Please enter a number less than 100';
+				}
+			} else {
+				var str = value.val().trim();
+				var regex = /^(\d*)(?:\.(\d{0,2}))?$/;
+				if (!regex.test(str)) msg = 'Please enter a valid amount';
+			}
+			value[0].setCustomValidity(msg);
+		};
+		validate();
+		value.change(validate);
+		type.change(validate);
+	});
+</script>
+{% endblock %}

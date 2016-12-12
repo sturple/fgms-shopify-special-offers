@@ -17,12 +17,22 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
 
     private function getVariant($id)
     {
-        return $this->shopify->call('GET',sprintf('/admin/variants/%d.json',$id))->getObject('variant');
+        $result = $this->shopify->call(
+            'GET',
+            sprintf('/admin/variants/%d',$id),
+            ['fields' => 'id,product_id,compare_at_price,price']
+        );
+        return $result->getObject('variant');
     }
 
     private function getProduct($id)
     {
-        return $this->shopify->call('GET',sprintf('/admin/products/%d.json',$id))->getObject('product');
+        $result = $this->shopify->call(
+            'GET',
+            sprintf('/admin/products/%d',$id),
+            ['fields' => 'id,tags']
+        );
+        return $result->getObject('product');
     }
 
     private function getVariants(\Fgms\SpecialOffersBundle\Entity\SpecialOffer $offer)
@@ -111,20 +121,65 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
             $retr[] = $change;
             $vid = $change->getVariantId();
             $pid = $obj->product->getInteger('id');
-            $compare_at = ($change->getType() === 'revert') ? null : $this->toPrice($change->getBeforeCents());
-            $this->shopify->call('PUT',sprintf('/admin/variants/%d.json',$vid),[
-                'variant' => [
-                    'id' => $vid,
-                    'price' => $this->toPrice($change->getAfterCents()),
-                    'compare_at_price' => $compare_at
-                ]
+            $revert = $change->getType() === 'revert';
+            $compare_at = $revert ? null : $this->toPrice($change->getBeforeCents());
+            $variant = [
+                'id' => $vid,
+                'price' => $this->toPrice($change->getAfterCents()),
+                'compare_at_price' => $compare_at
+            ];
+            $offer = $change->getSpecialOffer();
+            //  Add metafield on apply
+            if (!$revert) {
+                $metafield = ['namespace' => 'fgms_special_offers'];
+                $variant['metafields'] = [
+                    array_merge($metafield,[
+                        'key' => 'title',
+                        'value' => $offer->getTitle(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'subtitle',
+                        'value' => (string)$offer->getSubtitle(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'summary',
+                        'value' => (string)$offer->getSummary(),
+                        'value_type' => 'string'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'start',
+                        'value' => intval($offer->getStart()->format('U')) * 1000,
+                        'value_type' => 'integer'
+                    ]),
+                    array_merge($metafield,[
+                        'key' => 'end',
+                        'value' => intval($offer->getEnd()->format('U')) * 1000,
+                        'value_type' => 'integer'
+                    ])
+                ];
+            }
+            $this->shopify->call('PUT',sprintf('/admin/variants/%d',$vid),[
+                'variant' => $variant
             ]);
-            $this->shopify->call('PUT',sprintf('/admin/products/%d.json',$pid),[
+            $this->shopify->call('PUT',sprintf('/admin/products/%d',$pid),[
                 'product' => [
                     'id' => $pid,
                     'tags' => $this->arrayToTags($change->getAfterTags())
                 ]
             ]);
+            //  Remove metafield on revert
+            if ($revert) {
+                $metafields = $this->shopify->call('GET',sprintf('/admin/variants/%d/metafields',$vid),[
+                    'fields' => 'id',
+                    'namespace' => 'fgms_special_offers'
+                ])->getArray('metafields');
+                foreach ($metafields as $metafield) {
+                    $mid = $metafield->getInteger('id');
+                    $this->shopify->call('DELETE',sprintf('/admin/variants/%d/metafields/%d',$vid,$mid));
+                }
+            }
         }
         return $retr;
     }
@@ -156,7 +211,7 @@ class SpecialOfferStrategy implements SpecialOfferStrategyInterface
                 ->setSpecialOffer($offer)
                 ->setVariantId($vid)
                 ->setBeforeCents($price);
-            if (is_null($dc)) $pc->setAfterCents(intval($price * $dp));
+            if (is_null($dc)) $pc->setAfterCents(intval($price * (1.0 - ($dp / 100.0))));
             else $pc->setAfterCents($price - $dc);
             if ($pc->getAfterCents() < 0) throw new \LogicException(
                 sprintf(
