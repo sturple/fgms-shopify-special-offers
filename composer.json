@@ -1,9 +1,10 @@
 {
-    "name": "sturple/fgms-shopify-special-offers",
+    "name": "sturple/shopify-special-offers",
+    "version" : "0.0.1",
     "description": "Shopify Special Offers Bundle (Embed)",
     "type": "symfony-bundle",
     "keywords": ["shopify", "oauth","embed", "symfony","special offers"],
-    "homepage": "https://github.com/sturple/fgms-shopify-special-offers",
+    "homepage": "https://github.com/sturple/shopify-special-offers",
     "license": "MIT",
     "authors": [
         {
